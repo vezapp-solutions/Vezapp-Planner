@@ -41,6 +41,23 @@ def flatten_on_white(image):
     return page.convert("RGB")
 
 
+def dark_mode_logo(image):
+    """The same logo for dark backgrounds: the charcoal lettering becomes white, the teal is kept.
+
+    Grey pixels (low saturation) are recoloured; the alpha channel, and so the anti-aliased edges,
+    is left as it is.
+    """
+    rgba = image.convert("RGBA")
+    out = Image.new("RGBA", rgba.size)
+    pixels = []
+    for r, g, b, a in rgba.getdata():
+        if max(r, g, b) - min(r, g, b) < 40:  # grey, so part of the lettering
+            r = g = b = 255
+        pixels.append((r, g, b, a))
+    out.putdata(pixels)
+    return out
+
+
 def dominant_colours(image):
     """Most common quantised colours that are neither near-white nor near-grey-white."""
     small = image.convert("RGB").resize((320, int(320 * image.height / image.width)))
@@ -113,6 +130,9 @@ def main():
     print(f"white on darker teal : {contrast(white, teal_text):.2f}:1 (buttons)")
     print(f"charcoal on white    : {contrast(charcoal, white):.2f}:1")
     print(f"teal on dark surface : {contrast(teal, near_black):.2f}:1 ({hex_of(near_black)})")
+
+    dark_mode_logo(Image.open(SOURCE)).save(BRAND / "vezapp-logo-dark.png", optimize=True)
+    print("wrote vezapp-logo-dark.png")
 
     box = mark_box(logo)
     mark = logo.crop(box)

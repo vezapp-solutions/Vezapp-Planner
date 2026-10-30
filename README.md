@@ -58,4 +58,4 @@ Everything lives in `.env` (copy of `.env.example`; never committed). The produc
 
 ## Branding
 
-The logo (a transparent PNG, with only the empty margin trimmed) is copied from the supplied file into `frontend/public/brand/`. `scripts/brand_assets.py` regenerates the favicon and app icons from that copy and prints the sampled palette with contrast ratios.
+The logo (a transparent PNG, with only the empty margin trimmed) is copied from the supplied file into `frontend/public/brand/`. `scripts/brand_assets.py` regenerates the dark-mode logo, favicon and app icons from that copy and prints the sampled palette with contrast ratios.

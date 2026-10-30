@@ -90,11 +90,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The logo has dark lettering on a transparent background, so it needs a light tile in dark mode. */
-:root[data-theme="dark"] .logo-tile {
-  background: #ffffff;
-  border-radius: var(--radius-sm);
-  padding: 0.25rem 0.5rem;
+/* Two versions of the logo: charcoal lettering for light mode, white lettering for dark mode. */
+.logo-on-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .logo-on-dark {
+  display: block;
+}
+
+:root[data-theme="dark"] .logo-on-light {
+  display: none;
 }
 
 ::selection {
