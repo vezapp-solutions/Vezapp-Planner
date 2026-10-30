@@ -24,4 +24,3 @@ Unresolved points. Each says what is blocked or assumed meanwhile.
 
 - **Instant pricing.** CASCULATE offers AI-based instant pricing for castings. A future Vezapp module could estimate cost per part from weight, grade, operation minutes and hourly rates.
 - **WhatsApp daily digest.** The insight digest (Phase 5) is designed so a WhatsApp channel can be added later. Not built.
-- **Transparent logo.** A transparent PNG or SVG of the logo would remove the white tile in dark mode.

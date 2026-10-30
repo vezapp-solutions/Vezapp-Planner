@@ -28,7 +28,7 @@ def env_list(name: str, default: str = "") -> list[str]:
 APP_NAME = "Vezapp Planner"
 
 # The Vezapp logo for printed plans. It lives with the frontend brand files.
-BRAND_LOGO_PATH = REPO_DIR / "frontend" / "public" / "brand" / "vezapp-logo.jpg"
+BRAND_LOGO_PATH = REPO_DIR / "frontend" / "public" / "brand" / "vezapp-logo.png"
 
 DEBUG = env_bool("DJANGO_DEBUG", False)
 

@@ -3,7 +3,7 @@
 Run from the repo root with the backend virtualenv (needs Pillow):
     backend\\.venv\\Scripts\\python.exe scripts\\brand_assets.py
 
-The source logo (frontend/public/brand/vezapp-logo.jpg) is only read, never modified.
+The source logo (frontend/public/brand/vezapp-logo.png) is only read, never modified.
 """
 import colorsys
 from collections import Counter
@@ -12,7 +12,7 @@ from pathlib import Path
 from PIL import Image
 
 BRAND = Path(__file__).resolve().parent.parent / "frontend" / "public" / "brand"
-SOURCE = BRAND / "vezapp-logo.jpg"
+SOURCE = BRAND / "vezapp-logo.png"
 
 
 def luminance(rgb):
@@ -31,6 +31,14 @@ def contrast(a, b):
 
 def hex_of(rgb):
     return "#%02x%02x%02x" % tuple(rgb)
+
+
+def flatten_on_white(image):
+    """The logo is a transparent PNG; palette and icons are worked out on white."""
+    rgba = image.convert("RGBA")
+    page = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+    page.alpha_composite(rgba)
+    return page.convert("RGB")
 
 
 def dominant_colours(image):
@@ -76,7 +84,7 @@ def mark_box(image):
             end, gap = x, 0
         else:
             gap += 1
-            if gap > 24:
+            if gap > max(2, round(width * 24 / 1274)):  # a few pixels, scaled to the logo size
                 break
     rows = [y for y in range(height) if any(px[x, y] < 200 for x in range(start, end + 1))]
     return start, rows[0], end + 1, rows[-1] + 1
@@ -92,7 +100,7 @@ def square_icon(mark, size, padding_ratio=0.16, background=(255, 255, 255)):
 
 
 def main():
-    logo = Image.open(SOURCE).convert("RGB")
+    logo = flatten_on_white(Image.open(SOURCE))
     teal, charcoal = split_teal_and_charcoal(dominant_colours(logo))
     print(f"logo size            : {logo.size}")
     print(f"sampled brand teal   : {hex_of(teal)}")
