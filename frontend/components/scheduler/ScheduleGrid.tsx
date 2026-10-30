@@ -7,6 +7,8 @@ import { ApiError, del, fieldErrors, patch, post } from "@/lib/api";
 import { formatDate, formatNumber, formatTonnes, todayInIndia } from "@/lib/format";
 import { LINE_STATUS_LABEL, type Customer, type LineStatus, type Page, type Part, type ScheduleLine } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface Draft {
   customer: string;
@@ -130,23 +132,23 @@ function EditRow({
   return (
     <tr className="border-b border-line bg-brand-wash/40" onKeyDown={onKey}>
       <Cell error={errors.internal_dispatch_date}>
-        <input aria-label="Internal dispatch date" type="date" className={`${input} w-36`} value={d.internal_dispatch_date} onChange={(e) => set({ internal_dispatch_date: e.target.value })} />
+        <DatePicker aria-label="Internal dispatch date" className={`${input} w-36`} value={d.internal_dispatch_date} onChange={(e) => set({ internal_dispatch_date: e.target.value })} />
       </Cell>
       <Cell error={errors.customer}>
-        <select aria-label="Customer" className={`${input} w-44`} value={d.customer} onChange={(e) => set({ customer: e.target.value, part: "" })}>
+        <Select aria-label="Customer" className={`${input} w-44`} value={d.customer} onChange={(e) => set({ customer: e.target.value, part: "" })}>
           <option value="">Customer…</option>
           {customers.filter((c) => c.is_active || String(c.id) === d.customer).map((c) => (
             <option key={c.id} value={c.id}>{c.code} {c.name}</option>
           ))}
-        </select>
+        </Select>
       </Cell>
       <Cell error={errors.part}>
-        <select aria-label="Part" className={`${input} w-48`} value={d.part} onChange={(e) => set({ part: e.target.value })}>
+        <Select aria-label="Part" className={`${input} w-48`} value={d.part} onChange={(e) => set({ part: e.target.value })}>
           <option value="">Part…</option>
           {partOptions.filter((p) => p.is_active || String(p.id) === d.part).map((p) => (
             <option key={p.id} value={p.id}>{p.part_number} {p.name}</option>
           ))}
-        </select>
+        </Select>
         {d.customer && !linkedOnly && <p className="mt-0.5 text-xs text-ink-soft">No parts linked to this customer yet; showing all.</p>}
       </Cell>
       <Cell error={errors.dispatch_qty}>
@@ -154,17 +156,17 @@ function EditRow({
       </Cell>
       <td className="px-2 py-1.5 text-right font-mono text-ink-soft">–</td>
       <Cell error={errors.actual_dispatch_date}>
-        <input aria-label="Actual dispatch date" type="date" className={`${input} w-36`} value={d.actual_dispatch_date} onChange={(e) => set({ actual_dispatch_date: e.target.value, status: e.target.value && (d.status === "planned" || d.status === "in_progress") ? "dispatched" : !e.target.value && d.status === "dispatched" ? "planned" : d.status })} />
+        <DatePicker aria-label="Actual dispatch date" className={`${input} w-36`} value={d.actual_dispatch_date} onChange={(e) => set({ actual_dispatch_date: e.target.value, status: e.target.value && (d.status === "planned" || d.status === "in_progress") ? "dispatched" : !e.target.value && d.status === "dispatched" ? "planned" : d.status })} clearable={false} />
       </Cell>
       <Cell error={errors.actual_dispatched_qty}>
         <input aria-label="Actual dispatched quantity" type="number" min={1} step={1} inputMode="numeric" className={`${input} w-24 font-mono`} value={d.actual_dispatched_qty} onChange={(e) => set({ actual_dispatched_qty: e.target.value })} />
       </Cell>
       <Cell error={errors.status}>
-        <select aria-label="Status" className={`${input} w-32`} value={d.status} onChange={(e) => set({ status: e.target.value as LineStatus })}>
+        <Select aria-label="Status" className={`${input} w-32`} value={d.status} onChange={(e) => set({ status: e.target.value as LineStatus })}>
           {Object.entries(LINE_STATUS_LABEL).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
           ))}
-        </select>
+        </Select>
       </Cell>
       <Cell error={errors.remarks}>
         <input aria-label="Remarks" className={`${input} w-44`} value={d.remarks} maxLength={500} onChange={(e) => set({ remarks: e.target.value })} />

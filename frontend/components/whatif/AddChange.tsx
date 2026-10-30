@@ -8,6 +8,7 @@ import { ApiError, fieldErrors, post } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { CHANGE_KIND_LABEL, type ChangeKind, type Page, type Resource, type ScheduleLine, type Shift } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 const KINDS = Object.keys(CHANGE_KIND_LABEL) as ChangeKind[];
 
@@ -118,9 +119,9 @@ export function AddChange({ scenarioId, onAdded }: { scenarioId: number; onAdded
     <div className="space-y-3">
       <label className="block text-sm font-medium">
         Kind of change
-        <select className="field mt-1 sm:max-w-xs" value={kind} onChange={(e) => pick(e.target.value as ChangeKind)}>
+        <Select className="field mt-1 sm:max-w-xs" value={kind} onChange={(e) => pick(e.target.value as ChangeKind)}>
           {KINDS.map((k) => <option key={k} value={k}>{CHANGE_KIND_LABEL[k]}</option>)}
-        </select>
+        </Select>
       </label>
       <FormError message={formError} />
       <RecordForm fields={fields} draft={shown} setDraft={setDraft} errors={errors} idPrefix={`chg-${kind}`} />

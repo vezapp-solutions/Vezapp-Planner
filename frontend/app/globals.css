@@ -184,10 +184,17 @@ button:disabled,
     background: var(--surface);
     color: var(--ink);
     border: 1px solid color-mix(in srgb, var(--ink) 38%, var(--ground));
-    border-radius: var(--radius-md);
+    border-radius: 0.5rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
   }
-  .field:hover {
+  .field:hover:not(:disabled) {
     border-color: var(--ink-soft);
+  }
+  .field:focus-visible,
+  .field[aria-expanded="true"] {
+    border-color: var(--action);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 22%, transparent);
+    outline: none;
   }
   .field:disabled {
     background: var(--sunken);
@@ -214,6 +221,24 @@ button:disabled,
 
 .slide-in {
   animation: slide-in 160ms ease-out;
+}
+
+/* Drop-down lists and the calendar fade and settle in from the trigger. */
+.popover-in {
+  animation: popover-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top center;
+  box-shadow: 0 10px 30px -8px rgb(0 0 0 / 0.25), 0 2px 6px -2px rgb(0 0 0 / 0.12);
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes slide-in {

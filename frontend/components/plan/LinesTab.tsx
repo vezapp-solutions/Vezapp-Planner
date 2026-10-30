@@ -8,6 +8,8 @@ import { Slack, StatusBadge } from "@/components/plan/StatusBadge";
 import { formatDate, formatNumber } from "@/lib/format";
 import { PLAN_STATUS_LABEL, type Page, type Plan, type PlanLine } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export function LinesTab({ plan }: { plan: Plan }) {
   const [status, setStatus] = useState("");
@@ -23,14 +25,14 @@ export function LinesTab({ plan }: { plan: Plan }) {
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Status</span>
-          <select className="field !min-h-10 !w-40" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <Select className="field !min-h-10 !w-40" value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">All lines</option>
             {Object.entries(PLAN_STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Month of internal date</span>
-          <input type="month" className="field !min-h-10 !w-44" value={month} onChange={(e) => setMonth(e.target.value)} />
+          <DatePicker mode="month" className="field !min-h-10 !w-44" value={month} onChange={(e) => setMonth(e.target.value)} />
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Part</span>

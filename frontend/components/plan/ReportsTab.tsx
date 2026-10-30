@@ -8,6 +8,8 @@ import { ApiError, download } from "@/lib/api";
 import { addDays, todayInIndia } from "@/lib/format";
 import type { Page, Plan, Shift } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const REPORTS = [
   { id: "shift_plan", label: "Shift plan", note: "What each department runs in each shift of a day." },
@@ -65,30 +67,30 @@ export function ReportsTab({ plan }: { plan: Plan }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label htmlFor="report" className="mb-1 block text-sm font-medium">Report</label>
-          <select id="report" className="field" value={report} onChange={(e) => setReport(e.target.value)}>
+          <Select id="report" className="field" value={report} onChange={(e) => setReport(e.target.value)}>
             {REPORTS.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
-          </select>
+          </Select>
           <p className="mt-1 text-xs text-ink-soft">{chosen.note}</p>
         </div>
         {perDay && (
           <>
             <div>
               <label htmlFor="department" className="mb-1 block text-sm font-medium">Department</label>
-              <select id="department" className="field" value={department} onChange={(e) => setDepartment(e.target.value)}>
+              <Select id="department" className="field" value={department} onChange={(e) => setDepartment(e.target.value)}>
                 {DEPARTMENTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
+              </Select>
             </div>
             <div>
               <label htmlFor="rep-date" className="mb-1 block text-sm font-medium">Day</label>
-              <input id="rep-date" type="date" className="field" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} />
+              <DatePicker id="rep-date" className="field" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} clearable={false} />
             </div>
             {report === "shift_plan" && (
               <div>
                 <label htmlFor="shift" className="mb-1 block text-sm font-medium">Shift</label>
-                <select id="shift" className="field" value={shift} onChange={(e) => setShift(e.target.value)}>
+                <Select id="shift" className="field" value={shift} onChange={(e) => setShift(e.target.value)}>
                   <option value="">Every shift of the day</option>
                   {shifts.data?.results.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+                </Select>
               </div>
             )}
           </>
@@ -96,18 +98,18 @@ export function ReportsTab({ plan }: { plan: Plan }) {
         {report === "dispatch_vs_estimate" && (
           <div>
             <label htmlFor="rep-month" className="mb-1 block text-sm font-medium">Month</label>
-            <input id="rep-month" type="month" className="field" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} />
+            <DatePicker mode="month" id="rep-month" className="field" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} clearable={false} />
           </div>
         )}
         {report === "resource_load" && (
           <>
             <div>
               <label htmlFor="rep-from" className="mb-1 block text-sm font-medium">From</label>
-              <input id="rep-from" type="date" className="field" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} />
+              <DatePicker id="rep-from" className="field" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} clearable={false} />
             </div>
             <div>
               <label htmlFor="rep-to" className="mb-1 block text-sm font-medium">To</label>
-              <input id="rep-to" type="date" className="field" value={to} onChange={(e) => e.target.value && setTo(e.target.value)} />
+              <DatePicker id="rep-to" className="field" value={to} onChange={(e) => e.target.value && setTo(e.target.value)} clearable={false} />
             </div>
           </>
         )}

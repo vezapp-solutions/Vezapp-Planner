@@ -7,6 +7,7 @@ import { ErrorState, LoadingState } from "@/components/States";
 import { addDays, formatDayMonth, formatNumber, formatWeekday, todayInIndia } from "@/lib/format";
 import type { Availability } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 /** Shift-by-shift available minutes for one resource. Click a number to see how it was worked out. */
 export function AvailabilityPreview({ resourceId, isFurnace, version }: { resourceId: number; isFurnace: boolean; version: number }) {
@@ -20,7 +21,7 @@ export function AvailabilityPreview({ resourceId, isFurnace, version }: { resour
         <h3 id="avail-title" className="font-display text-lg font-semibold">Available minutes, 7 days</h3>
         <label className="flex items-center gap-2 text-sm">
           From
-          <input type="date" className="field !min-h-9 !w-auto" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} />
+          <DatePicker className="field !min-h-9 !w-auto" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} clearable={false} />
         </label>
       </div>
       {data.loading ? (

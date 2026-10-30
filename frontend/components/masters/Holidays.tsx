@@ -8,6 +8,7 @@ import type { FieldSpec } from "@/components/forms";
 import { formatDate, formatWeekday, todayInIndia } from "@/lib/format";
 import type { Holiday, Page, Shift } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 export function Holidays({ canEdit }: { canEdit: boolean }) {
   const thisYear = Number(todayInIndia().slice(0, 4));
@@ -44,11 +45,11 @@ export function Holidays({ canEdit }: { canEdit: boolean }) {
       toolbar={
         <label className="flex items-center gap-2 text-sm">
           Year
-          <select className="field !min-h-9 !w-auto" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+          <Select className="field !min-h-9 !w-auto" value={year} onChange={(e) => setYear(Number(e.target.value))}>
             {[thisYear - 1, thisYear, thisYear + 1, thisYear + 2].map((y) => (
               <option key={y} value={y}>{y}</option>
             ))}
-          </select>
+          </Select>
         </label>
       }
       columns={[

@@ -10,6 +10,7 @@ import { Tabs } from "@/components/Tabs";
 import { query } from "@/lib/insights";
 import type { MachineShop } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const TABS = [
   { id: "availability", label: "Availability" },
@@ -28,11 +29,11 @@ export default function MachineShopPage() {
       <div className="mb-5 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">From</span>
-          <input type="date" className="field !min-h-10 !w-44" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <DatePicker className="field !min-h-10 !w-44" value={from} onChange={(e) => setFrom(e.target.value)} />
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">To</span>
-          <input type="date" className="field !min-h-10 !w-44" value={to} onChange={(e) => setTo(e.target.value)} />
+          <DatePicker className="field !min-h-10 !w-44" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
         <p className="text-sm text-ink-soft">Leave the dates empty for the next two weeks.</p>
       </div>

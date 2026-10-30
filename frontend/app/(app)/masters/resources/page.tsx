@@ -13,6 +13,7 @@ import { canEditMasters } from "@/lib/nav";
 import { useSession } from "@/lib/store";
 import { KIND_LABEL, type Page, type Plant, type Resource, type ResourceKind, type ResourceType, type Shift } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 const STATUS = { active: "Active", inactive: "Inactive", maintenance: "Under maintenance" } as const;
 
@@ -89,12 +90,12 @@ export default function ResourcesPage() {
           toolbar={
             <label className="flex items-center gap-2 text-sm">
               Show
-              <select className="field !min-h-9 !w-auto" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}>
+              <Select className="field !min-h-9 !w-auto" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}>
                 <option value="">All resources</option>
                 {Object.entries(KIND_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>{label}s</option>
                 ))}
-              </select>
+              </Select>
             </label>
           }
           columns={[

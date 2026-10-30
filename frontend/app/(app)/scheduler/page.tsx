@@ -10,6 +10,8 @@ import { formatNumber, formatTonnes, todayInIndia } from "@/lib/format";
 import { useSession } from "@/lib/store";
 import { LINE_STATUS_LABEL, type Customer, type Grade, type Page, type ScheduleSummary } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -81,29 +83,29 @@ export default function SchedulerPage() {
         <div className="flex items-center gap-1" role="group" aria-label="Month">
           <button type="button" className="btn btn-quiet !min-h-10 !px-3" onClick={() => setMonth(shift(month, -1))} aria-label="Previous month">←</button>
           <label className="sr-only" htmlFor="month">Month</label>
-          <input id="month" type="month" className="field !min-h-10 !w-44" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} />
+          <DatePicker mode="month" id="month" className="field !min-h-10 !w-44" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} clearable={false} />
           <button type="button" className="btn btn-quiet !min-h-10 !px-3" onClick={() => setMonth(shift(month, 1))} aria-label="Next month">→</button>
         </div>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Customer</span>
-          <select className="field !min-h-10 !w-48" value={customer} onChange={(e) => setCustomer(e.target.value)}>
+          <Select className="field !min-h-10 !w-48" value={customer} onChange={(e) => setCustomer(e.target.value)}>
             <option value="">All customers</option>
             {customers.data?.results.map((c) => <option key={c.id} value={c.id}>{c.code} {c.name}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Grade</span>
-          <select className="field !min-h-10 !w-36" value={grade} onChange={(e) => setGrade(e.target.value)}>
+          <Select className="field !min-h-10 !w-36" value={grade} onChange={(e) => setGrade(e.target.value)}>
             <option value="">All grades</option>
             {grades.data?.results.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Status</span>
-          <select className="field !min-h-10 !w-36" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <Select className="field !min-h-10 !w-36" value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">All statuses</option>
             {Object.entries(LINE_STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
+          </Select>
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Part</span>

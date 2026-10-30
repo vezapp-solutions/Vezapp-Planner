@@ -8,6 +8,7 @@ import { ApiError, del, fieldErrors, post } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { Downtime, Page } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 /** Blocked periods (maintenance, breakdown, lining change). They remove capacity from the plan. */
 export function DowntimeManager({ resourceId, canEdit, onChanged }: { resourceId: number; canEdit: boolean; onChanged: () => void }) {
@@ -80,11 +81,11 @@ export function DowntimeManager({ resourceId, canEdit, onChanged }: { resourceId
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm font-medium">
               From
-              <input type="datetime-local" className="field mt-1" value={from} onChange={(e) => setFrom(e.target.value)} />
+              <DatePicker mode="datetime" className="field mt-1" value={from} onChange={(e) => setFrom(e.target.value)} />
             </label>
             <label className="text-sm font-medium">
               To
-              <input type="datetime-local" className="field mt-1" value={to} onChange={(e) => setTo(e.target.value)} />
+              <DatePicker mode="datetime" className="field mt-1" value={to} onChange={(e) => setTo(e.target.value)} />
             </label>
           </div>
           <label className="block text-sm font-medium">

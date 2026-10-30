@@ -8,6 +8,8 @@ import { formatDate, formatDayMonth, formatWeekday, addDays, todayInIndia } from
 import { STATUS_COLOR, clip, placeResourceBars, xOf, type GanttScale } from "@/lib/plan-utils";
 import { PLAN_STATUS_LABEL, type GanttBar, type Plan } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const LABEL_W = 150;
 const ROW_H = 30;
@@ -62,13 +64,13 @@ export function GanttTab({ plan }: { plan: Plan }) {
         </div>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">From</span>
-          <input type="date" className="field !min-h-10 !w-40" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} />
+          <DatePicker className="field !min-h-10 !w-40" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} clearable={false} />
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Window</span>
-          <select className="field !min-h-10 !w-32" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <Select className="field !min-h-10 !w-32" value={days} onChange={(e) => setDays(Number(e.target.value))}>
             {[7, 14, 28].map((d) => <option key={d} value={d}>{d} days</option>)}
-          </select>
+          </Select>
         </label>
         <ul className="flex flex-wrap gap-3 text-xs" aria-label="Colour key">
           {(Object.keys(STATUS_COLOR) as (keyof typeof STATUS_COLOR)[]).map((s) => (

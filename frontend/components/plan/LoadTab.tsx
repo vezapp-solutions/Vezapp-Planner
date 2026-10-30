@@ -8,6 +8,8 @@ import { addDays, formatDate, formatDayMonth, formatNumber, formatWeekday, today
 import { HEAT_STYLE, heatLevel, percent } from "@/lib/plan-utils";
 import { KIND_LABEL, type LoadGrid, type Plan } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface CellLines {
   date: string;
@@ -62,13 +64,13 @@ export function LoadTab({ plan }: { plan: Plan }) {
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">From</span>
-          <input type="date" className="field !min-h-10 !w-40" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} />
+          <DatePicker className="field !min-h-10 !w-40" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} clearable={false} />
         </label>
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Window</span>
-          <select className="field !min-h-10 !w-32" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <Select className="field !min-h-10 !w-32" value={days} onChange={(e) => setDays(Number(e.target.value))}>
             {[7, 14, 21].map((d) => <option key={d} value={d}>{d} days</option>)}
-          </select>
+          </Select>
         </label>
         <label className="flex min-h-10 items-center gap-2 text-sm">
           <input type="checkbox" className="size-4 accent-[var(--action)]" checked={byShift} onChange={(e) => setByShift(e.target.checked)} /> Show each shift

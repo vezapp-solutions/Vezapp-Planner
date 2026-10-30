@@ -11,6 +11,7 @@ import { navFor } from "@/lib/nav";
 import { useSession } from "@/lib/store";
 import { ROLE_LABEL, type Company, type Page } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 function SideNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -122,7 +123,7 @@ function CompanySwitcher({ full = false }: { full?: boolean }) {
   return (
     <label className="flex items-center gap-2 text-sm">
       <span className={`text-ink-soft ${full ? "" : "hidden lg:inline"}`}>Working on</span>
-      <select
+      <Select
         className={`field !min-h-9 ${full ? "min-w-0 flex-1" : "!w-auto max-w-[16rem]"}`}
         value={actingCompanyId ?? ""}
         onChange={(e) => chooseCompany(e.target.value ? Number(e.target.value) : null)}
@@ -134,7 +135,7 @@ function CompanySwitcher({ full = false }: { full?: boolean }) {
             {c.name}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

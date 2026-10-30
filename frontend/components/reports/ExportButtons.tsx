@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { FormErrorLine } from "@/components/States";
 import { ApiError, download } from "@/lib/api";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 /** PDF and Excel downloads of a report, with the same filters as the screen. */
 export function ExportButtons({ path, filename, disabled = false }: { path: string; filename: string; disabled?: boolean }) {
@@ -58,11 +59,11 @@ export function DateFilters({
     <div className="flex flex-wrap items-end gap-3">
       <label className="text-sm">
         <span className="mb-1 block text-ink-soft">From</span>
-        <input type="date" className="field !min-h-10 !w-44" value={from} onChange={(e) => onFrom(e.target.value)} />
+        <DatePicker className="field !min-h-10 !w-44" value={from} onChange={(e) => onFrom(e.target.value)} />
       </label>
       <label className="text-sm">
         <span className="mb-1 block text-ink-soft">To</span>
-        <input type="date" className="field !min-h-10 !w-44" value={to} onChange={(e) => onTo(e.target.value)} />
+        <DatePicker className="field !min-h-10 !w-44" value={to} onChange={(e) => onTo(e.target.value)} />
       </label>
       {onCustomer && (
         <label className="text-sm">

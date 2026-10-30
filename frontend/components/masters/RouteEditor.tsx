@@ -9,6 +9,7 @@ import { ApiError, post, put } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import { nextStep, opTitle } from "@/lib/machining";
 import type { Part, Resource, ResourceType, Route, RouteOp, Traced } from "@/lib/types";
+import { Select } from "@/components/ui/Select";
 
 const BASIS_LABEL: Record<string, string> = {
   per_core: "Minutes per core",
@@ -267,11 +268,11 @@ function OpCard({
                 <div className="sm:col-span-2 grid gap-x-4 gap-y-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor={`${id}-basis`} className="mb-1 block text-sm font-medium">Time basis</label>
-                    <select id={`${id}-basis`} className="field" value={op.time_basis} disabled={!canEdit} onChange={(e) => set({ time_basis: e.target.value })}>
+                    <Select id={`${id}-basis`} className="field" value={op.time_basis} disabled={!canEdit} onChange={(e) => set({ time_basis: e.target.value })}>
                       {op.allowed_time_bases.map((b) => (
                         <option key={b} value={b}>{BASIS_LABEL[b] ?? b}</option>
                       ))}
-                    </select>
+                    </Select>
                     {err("time_basis") && <p className="mt-1 text-sm text-danger">{err("time_basis")}</p>}
                   </div>
                   <NumField
@@ -289,10 +290,10 @@ function OpCard({
                   )}
                   <div>
                     <label htmlFor={`${id}-bucket`} className="mb-1 block text-sm font-medium">Capacity is checked</label>
-                    <select id={`${id}-bucket`} className="field" value={op.capacity_bucket} disabled={!canEdit} onChange={(e) => set({ capacity_bucket: e.target.value as RouteOp["capacity_bucket"] })}>
+                    <Select id={`${id}-bucket`} className="field" value={op.capacity_bucket} disabled={!canEdit} onChange={(e) => set({ capacity_bucket: e.target.value as RouteOp["capacity_bucket"] })}>
                       <option value="shift">Per shift</option>
                       <option value="day">Per day</option>
-                    </select>
+                    </Select>
                     <p className="mt-1 text-xs text-ink-soft">Decides whether plans and prints for this operation are by shift or by day.</p>
                   </div>
                   <NumField id={`${id}-lag`} label="Wait after this operation" unit="h" value={op.lag_hours} onChange={(v) => set({ lag_hours: v ?? 0 })} disabled={!canEdit} error={err("lag_hours")} hint="For example an inspection hold or transport. Default 0." />
@@ -535,12 +536,12 @@ export function RouteEditor({ part, initial, resources, machineTypes, otherParts
         {canEdit && otherParts.length > 0 && (
           <span className="ml-auto flex flex-wrap items-center gap-2">
             <label className="sr-only" htmlFor="copy-from">Copy route from another part</label>
-            <select id="copy-from" className="field !min-h-9 !w-auto max-w-[14rem]" value={copyFrom} onChange={(e) => { setCopyFrom(e.target.value); setConfirmCopy(false); }}>
+            <Select id="copy-from" className="field !min-h-9 !w-auto max-w-[14rem]" value={copyFrom} onChange={(e) => { setCopyFrom(e.target.value); setConfirmCopy(false); }}>
               <option value="">Copy route from…</option>
               {otherParts.map((p) => (
                 <option key={p.id} value={p.id}>{p.part_number} {p.name}</option>
               ))}
-            </select>
+            </Select>
             {copyFrom && (confirmCopy ? (
               <button type="button" className="btn btn-quiet !min-h-9 !border-danger !text-danger" onClick={copy} disabled={busy}>Replace this route</button>
             ) : (

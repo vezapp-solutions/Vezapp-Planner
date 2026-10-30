@@ -2,6 +2,7 @@
 
 import { allowedMachines, machineOn, runsOn, setTypeTime, timedTypes, toggleMachine, toggleType } from "@/lib/machining";
 import type { Resource, ResourceType, RouteOp } from "@/lib/types";
+import { Select } from "@/components/ui/Select";
 
 /** A number box for minutes. Kept small and local so a blank means "use the default". */
 function MinutesBox({ id, label, value, onChange, unit = "min", hint, error, disabled, placeholder }: { id: string; label: string; value: number | null | undefined; onChange: (v: number | null) => void; unit?: string; hint?: string; error?: string; disabled?: boolean; placeholder?: string }) {
@@ -101,10 +102,10 @@ export function MachineChoice({
       {canEdit && elsewhere.length > 0 && (
         <div>
           <label htmlFor={`${id}-other`} className="mb-1 block text-sm font-medium">Add a machine of another type</label>
-          <select id={`${id}-other`} className="field sm:max-w-xs" value="" onChange={(e) => e.target.value && onChange({ resource_ids: [...op.resource_ids, Number(e.target.value)] })}>
+          <Select id={`${id}-other`} className="field sm:max-w-xs" value="" onChange={(e) => e.target.value && onChange({ resource_ids: [...op.resource_ids, Number(e.target.value)] })}>
             <option value="">Choose a machine…</option>
             {elsewhere.map((m) => <option key={m.id} value={m.id}>{m.code} · {m.name} ({m.type_name})</option>)}
-          </select>
+          </Select>
         </div>
       )}
 

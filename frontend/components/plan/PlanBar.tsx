@@ -7,6 +7,7 @@ import { ApiError, post } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import type { Page, Plan } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 /** Version, state and the Recalculate / Confirm / New plan actions of the plan being viewed. */
 export function PlanBar({
@@ -50,11 +51,11 @@ export function PlanBar({
       <div className="panel flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
         <div>
           <label htmlFor="plan-version" className="text-xs text-ink-soft">Plan</label>
-          <select id="plan-version" className="field !min-h-9 !w-auto" value={plan.id} onChange={(e) => onSelect(Number(e.target.value))}>
+          <Select id="plan-version" className="field !min-h-9 !w-auto" value={plan.id} onChange={(e) => onSelect(Number(e.target.value))}>
             {(plans.data?.results ?? [plan]).map((p) => (
               <option key={p.id} value={p.id}>v{p.version} · {p.status === "draft" ? "Draft" : "Confirmed"}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="text-sm">
           <p className="text-xs text-ink-soft">Calculated</p>

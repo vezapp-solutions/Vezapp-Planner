@@ -7,6 +7,7 @@ import { formatDateTime } from "@/lib/format";
 import { useSession } from "@/lib/store";
 import type { AuditEntry, Page } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 const MODELS = [
   ["", "Everything"],
@@ -47,11 +48,11 @@ export default function AuditPage() {
       <PageHeader title="Audit log" subtitle="Who changed what, and when">
         <label className="flex items-center gap-2 text-sm">
           Show
-          <select className="field !min-h-9 !w-auto" value={model} onChange={(e) => setModel(e.target.value)}>
+          <Select className="field !min-h-9 !w-auto" value={model} onChange={(e) => setModel(e.target.value)}>
             {MODELS.map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
-          </select>
+          </Select>
         </label>
       </PageHeader>
       {!allowed ? (

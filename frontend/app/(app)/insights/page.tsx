@@ -14,6 +14,7 @@ import { bySeverity, filterCards, SEVERITY_LABEL, SEVERITY_ORDER, summaryText, t
 import { useSession } from "@/lib/store";
 import type { InsightList } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Select } from "@/components/ui/Select";
 
 const TABS = [
   { id: "cards", label: "Insights" },
@@ -100,17 +101,17 @@ function InsightsView({ initialTab }: { initialTab: string }) {
                 <div className="flex flex-wrap items-end gap-3">
                   <label className="text-sm">
                     <span className="mb-1 block text-ink-soft">Severity</span>
-                    <select className="field !min-h-10 !w-40" value={severity} onChange={(e) => setSeverity(e.target.value)}>
+                    <Select className="field !min-h-10 !w-40" value={severity} onChange={(e) => setSeverity(e.target.value)}>
                       <option value="">All</option>
                       {SEVERITY_ORDER.map((s) => <option key={s} value={s}>{SEVERITY_LABEL[s]}</option>)}
-                    </select>
+                    </Select>
                   </label>
                   <label className="text-sm">
                     <span className="mb-1 block text-ink-soft">Kind</span>
-                    <select className="field !min-h-10 !w-56" value={type} onChange={(e) => setType(e.target.value)}>
+                    <Select className="field !min-h-10 !w-56" value={type} onChange={(e) => setType(e.target.value)}>
                       <option value="">All kinds</option>
                       {typesPresent(cards).map((t) => <option key={t} value={t}>{TYPE_LABEL[t]}</option>)}
-                    </select>
+                    </Select>
                   </label>
                 </div>
 

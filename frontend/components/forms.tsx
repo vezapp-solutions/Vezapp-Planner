@@ -2,6 +2,9 @@
 
 import type { ReactNode } from "react";
 
+import { DatePicker } from "@/components/ui/DatePicker";
+import { Select } from "@/components/ui/Select";
+
 export type Option = { value: string | number; label: string };
 export type DraftValue = string | boolean | (string | number)[];
 export type Draft = Record<string, DraftValue>;
@@ -164,14 +167,14 @@ export function RecordForm({
             control = <textarea {...common} rows={3} className="field !py-2" value={String(value)} onChange={(e) => set(f.key, e.target.value)} placeholder={f.placeholder} />;
           } else if (f.type === "select") {
             control = (
-              <select {...common} className="field" value={String(value)} onChange={(e) => set(f.key, e.target.value)}>
+              <Select {...common} className="" value={String(value)} onChange={(e) => set(f.key, e.target.value)}>
                 {(f.blankLabel !== undefined || f.required) && <option value="">{f.blankLabel ?? "Choose…"}</option>}
                 {f.options?.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             );
           } else if (f.type === "multi") {
             const chosen = (value as (string | number)[]) ?? [];
@@ -206,8 +209,19 @@ export function RecordForm({
                 {error && <p className="mt-1 text-sm text-danger">{error}</p>}
               </div>
             );
+          } else if (f.type === "date" || f.type === "datetime") {
+            control = (
+              <DatePicker
+                {...common}
+                mode={f.type === "datetime" ? "datetime" : "date"}
+                value={String(value)}
+                onChange={(e) => set(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                clearable={!f.required}
+              />
+            );
           } else {
-            const type = f.type === "datetime" ? "datetime-local" : f.type;
+            const type = f.type;
             control = (
               <div className="relative">
                 <input
