@@ -117,6 +117,21 @@ export function AskPanel() {
   const log = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   const nextId = useRef(1);
+  // "Expanded" fills the browser window (not the whole device screen); Esc brings it back.
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setExpanded(false);
+    window.addEventListener("keydown", onKey);
+    box.current?.focus();
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [expanded]);
 
   useEffect(() => {
     log.current?.scrollTo?.({ top: log.current.scrollHeight, behavior: "smooth" });
@@ -173,8 +188,16 @@ export function AskPanel() {
   const left = info.max_question_chars - question.length;
 
   return (
-    <section aria-label="Ask Vezapp Planner" className="flex h-[calc(100dvh-17rem)] max-h-[52rem] min-h-[30rem] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
-      <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+    <section
+      aria-label="Ask Vezapp Planner"
+      className={
+        expanded
+          ? "chat-expand fixed inset-0 z-[60] flex h-dvh flex-col overflow-hidden bg-surface"
+          : "flex h-[calc(100dvh-17rem)] max-h-[52rem] min-h-[30rem] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
+      }
+    >
+      <header className="border-b border-line px-4 py-3">
+        <div className={`mx-auto flex w-full items-center justify-between gap-3 ${expanded ? "max-w-4xl" : ""}`}>
         <div className="flex min-w-0 items-center gap-3">
           <Avatar />
           <div className="min-w-0">
@@ -187,15 +210,33 @@ export function AskPanel() {
             </p>
           </div>
         </div>
-        {!empty && (
-          <button type="button" className="btn btn-quiet !min-h-9 !px-3 text-sm" onClick={startOver} disabled={busy}>
-            <svg {...icon} className="h-4 w-4"><path d="M10 4v12M4 10h12" /></svg>
-            New chat
+        <div className="flex shrink-0 items-center gap-2">
+          {!empty && (
+            <button type="button" className="btn btn-quiet !min-h-9 !px-3 text-sm" onClick={startOver} disabled={busy}>
+              <svg {...icon} className="h-4 w-4"><path d="M10 4v12M4 10h12" /></svg>
+              <span className="hidden sm:inline">New chat</span>
+              <span className="sr-only sm:hidden">New chat</span>
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn btn-quiet !min-h-9 !px-3 text-sm"
+            onClick={() => setExpanded((v) => !v)}
+            aria-pressed={expanded}
+            aria-label={expanded ? "Exit full view" : "Expand the chat to fill the window"}
+            title={expanded ? "Exit full view (Esc)" : "Expand the chat to fill the window"}
+          >
+            <svg {...icon} className="h-4 w-4">
+              {expanded ? <path d="M8 3v4a1 1 0 01-1 1H3M12 3v4a1 1 0 001 1h4M8 17v-4a1 1 0 00-1-1H3M12 17v-4a1 1 0 011-1h4" /> : <path d="M3 8V4a1 1 0 011-1h4M17 8V4a1 1 0 00-1-1h-4M3 12v4a1 1 0 001 1h4M17 12v4a1 1 0 01-1 1h-4" />}
+            </svg>
+            <span className="hidden sm:inline">{expanded ? "Exit full view" : "Expand"}</span>
           </button>
-        )}
+        </div>
+        </div>
       </header>
 
-      <div ref={log} role="log" aria-live="polite" aria-label="Conversation" className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5">
+      <div ref={log} role="log" aria-live="polite" aria-label="Conversation" className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+        <div className={`mx-auto w-full space-y-4 ${expanded ? "max-w-4xl" : ""}`}>
         {empty ? (
           <div className="chat-in mx-auto flex max-w-xl flex-col items-center pt-4 text-center">
             <Avatar size="lg" />
@@ -223,9 +264,11 @@ export function AskPanel() {
         )}
         {busy && <Typing />}
         {error && <FormErrorLine message={error} />}
+        </div>
       </div>
 
       <div className="border-t border-line bg-surface px-3 pb-3 pt-2 sm:px-4">
+        <div className={`mx-auto w-full ${expanded ? "max-w-4xl" : ""}`}>
         {!empty && followUps.length > 0 && !busy && (
           <div className="no-scrollbar -mx-1 mb-2 flex gap-2 overflow-x-auto px-1 pb-1" aria-label="You could ask next">
             {followUps.map((s) => (
@@ -277,6 +320,7 @@ export function AskPanel() {
           <span>Enter to send, Shift+Enter for a new line. {info.disclaimer}</span>
           {left < 80 && <span aria-live="polite">{left} characters left</span>}
         </p>
+        </div>
       </div>
     </section>
   );
