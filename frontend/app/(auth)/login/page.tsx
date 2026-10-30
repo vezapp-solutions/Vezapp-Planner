@@ -45,7 +45,7 @@ export default function LoginPage() {
         aria-hidden="true"
         className="relative hidden flex-col justify-between border-r border-line bg-sunken p-10 lg:flex"
       >
-        <Logo height={40} />
+        <Logo height={34} />
         <div>
           <p className="font-display text-4xl font-semibold leading-tight tracking-tight">
             Plan the pour
@@ -72,7 +72,7 @@ export default function LoginPage() {
       <main className="flex flex-col px-5 py-6 sm:px-10">
         <div className="flex items-center justify-between lg:justify-end">
           <span className="lg:hidden">
-            <Logo height={32} priority />
+            <Logo height={28} priority />
           </span>
           <ThemeToggle />
         </div>

@@ -543,7 +543,7 @@ export function RouteEditor({ part, initial, resources, machineTypes, otherParts
               ))}
             </Select>
             {copyFrom && (confirmCopy ? (
-              <button type="button" className="btn btn-quiet !min-h-9 !border-danger !text-danger" onClick={copy} disabled={busy}>Replace this route</button>
+              <button type="button" className="btn btn-danger !min-h-9" onClick={copy} disabled={busy}>Replace this route</button>
             ) : (
               <button type="button" className="btn btn-quiet !min-h-9" onClick={() => setConfirmCopy(true)}>Copy</button>
             ))}

@@ -187,7 +187,7 @@ export function CrudScreen<T extends { id: number }>(props: CrudProps<T>) {
               {canEdit && current && (canDelete?.(current) ?? true) && (
                 <span className="ml-auto">
                   {confirmDelete ? (
-                    <button type="button" className="btn btn-quiet !border-danger !text-danger" onClick={remove} disabled={busy}>
+                    <button type="button" className="btn btn-danger" onClick={remove} disabled={busy}>
                       Yes, delete
                     </button>
                   ) : (

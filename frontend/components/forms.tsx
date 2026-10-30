@@ -147,7 +147,7 @@ export function RecordForm({
                 <input
                   type="checkbox"
                   id={id}
-                  className="size-4 accent-[var(--action)]"
+                  className="size-[1.125rem]"
                   checked={Boolean(value)}
                   disabled={disabled}
                   onChange={(e) => set(f.key, e.target.checked)}
@@ -184,10 +184,10 @@ export function RecordForm({
                   f.options.map((o) => {
                     const on = chosen.includes(o.value);
                     return (
-                      <label key={o.value} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-action bg-brand-wash" : "border-line"}`}>
+                      <label key={o.value} className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm transition-colors duration-150 ${on ? "border-action bg-brand-wash" : "border-line hover:border-ink-soft hover:bg-sunken"}`}>
                         <input
                           type="checkbox"
-                          className="size-4 accent-[var(--action)]"
+                          className="size-[1.125rem]"
                           checked={on}
                           disabled={disabled}
                           onChange={() => set(f.key, on ? chosen.filter((c) => c !== o.value) : [...chosen, o.value])}

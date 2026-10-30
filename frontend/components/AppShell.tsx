@@ -169,7 +169,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </svg>
         </button>
         <Link href="/home" aria-label="Home">
-          <Logo height={28} priority />
+          <Logo height={24} priority />
         </Link>
         {user.role === "vezapp_admin" ? (
           <div className="ml-1 hidden min-w-0 border-l border-line pl-3 md:block">

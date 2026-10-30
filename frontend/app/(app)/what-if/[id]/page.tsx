@@ -196,7 +196,7 @@ export default function ScenarioPage() {
       <PageHeader title={s.name} subtitle={draft ? "Draft scenario · nothing here changes the real data until you apply it" : "Applied scenario · kept as a record"}>
         {canEdit && (
           confirmDelete ? (
-            <button type="button" className="btn btn-quiet !border-danger !text-danger" onClick={removeScenario}>Yes, delete scenario</button>
+            <button type="button" className="btn btn-danger" onClick={removeScenario}>Yes, delete scenario</button>
           ) : (
             <button type="button" className="btn btn-quiet" onClick={() => setConfirmDelete(true)}>Delete scenario</button>
           )

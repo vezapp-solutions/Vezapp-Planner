@@ -176,7 +176,7 @@ function EditRow({
           <button type="button" className="btn btn-primary !min-h-9 !px-3" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save"}</button>
           <button type="button" className="btn btn-quiet !min-h-9 !px-3" onClick={onCancel} disabled={busy}>Cancel</button>
           {line && (confirmDelete ? (
-            <button type="button" className="btn btn-quiet !min-h-9 !border-danger !px-3 !text-danger" onClick={remove} disabled={busy}>Yes, delete</button>
+            <button type="button" className="btn btn-danger !min-h-9 !px-3" onClick={remove} disabled={busy}>Yes, delete</button>
           ) : (
             <button type="button" className="btn btn-quiet !min-h-9 !px-3" onClick={() => setConfirmDelete(true)} disabled={busy}>Delete</button>
           ))}
