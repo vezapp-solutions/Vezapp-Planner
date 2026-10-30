@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { SparkleIcon } from "@/components/insights/AiBadge";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { navFor } from "@/lib/nav";
@@ -90,24 +91,39 @@ function UserMenu() {
         <p className="text-sm font-medium">{user.full_name}</p>
         <p className="text-xs text-ink-soft">{ROLE_LABEL[user.role]}</p>
       </div>
-      <button type="button" onClick={signOut} disabled={busy} className="btn btn-quiet !min-h-9">
+      <button type="button" onClick={signOut} disabled={busy} className="btn btn-quiet !min-h-9 whitespace-nowrap">
         {busy ? "Signing out…" : "Sign out"}
       </button>
     </div>
   );
 }
 
-/** Vezapp Admin only: pick the client company every screen then works on. */
-function CompanySwitcher() {
+/** Opens the AI assistant (the Ask tab on Insights) from any screen, for every role. */
+function AskAiButton() {
+  return (
+    <Link
+      href="/insights?tab=ask"
+      aria-label="Ask the AI assistant"
+      title="Ask the AI assistant"
+      className="inline-flex min-h-9 items-center gap-1.5 rounded-sm bg-action px-2.5 text-sm font-semibold text-on-action hover:opacity-90"
+    >
+      <SparkleIcon className="h-4 w-4" />
+      <span className="hidden sm:inline">Ask AI</span>
+    </Link>
+  );
+}
+
+/** Vezapp Admin only: pick the client company every screen then works on. On a phone it sits on its own row under the top bar. */
+function CompanySwitcher({ full = false }: { full?: boolean }) {
   const { actingCompanyId, chooseCompany } = useSession();
   const companies = useApi<Page<Company>>("/companies?page_size=500");
   const options = companies.data?.results.filter((c) => c.is_active) ?? [];
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="hidden text-ink-soft md:inline">Working on</span>
+      <span className={`text-ink-soft ${full ? "" : "hidden lg:inline"}`}>Working on</span>
       <select
-        className="field !min-h-9 !w-auto max-w-[11rem] sm:max-w-[16rem]"
+        className={`field !min-h-9 ${full ? "min-w-0 flex-1" : "!w-auto max-w-[16rem]"}`}
         value={actingCompanyId ?? ""}
         onChange={(e) => chooseCompany(e.target.value ? Number(e.target.value) : null)}
         aria-label="Company to work on"
@@ -138,7 +154,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15rem_1fr] lg:grid-rows-[auto_1fr]">
-      <header className="col-span-2 flex h-14 items-center gap-3 border-b border-line border-t-[3px] border-t-brand bg-surface px-3 sm:px-4">
+      <div className="col-span-2">
+      <header className="flex h-14 items-center gap-2 border-b border-line border-t-[3px] border-t-brand bg-surface px-3 sm:gap-3 sm:px-4">
         <button
           type="button"
           className="btn btn-quiet !min-h-9 !px-2.5 lg:hidden"
@@ -154,7 +171,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo height={28} priority />
         </Link>
         {user.role === "vezapp_admin" ? (
-          <div className="ml-1 min-w-0 border-l border-line pl-3">
+          <div className="ml-1 hidden min-w-0 border-l border-line pl-3 md:block">
             <CompanySwitcher />
           </div>
         ) : (
@@ -163,10 +180,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
         )}
         <div className="ml-auto flex items-center gap-2">
+          <AskAiButton />
           <ThemeToggle />
           <UserMenu />
         </div>
       </header>
+      {user.role === "vezapp_admin" && (
+        <div className="border-b border-line bg-surface px-3 py-2 md:hidden">
+          <CompanySwitcher full />
+        </div>
+      )}
+      </div>
 
       <aside className="hidden border-r border-line bg-surface lg:block">
         <SideNav />

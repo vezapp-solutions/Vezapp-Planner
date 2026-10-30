@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 import { AskPanel } from "@/components/insights/AskPanel";
 import { DigestTab } from "@/components/insights/DigestTab";
@@ -20,10 +21,26 @@ const TABS = [
   { id: "ask", label: "Ask Vezapp Planner" },
 ];
 
+/** `/insights?tab=ask` (the AI button in the top bar) opens the assistant straight away. */
 export default function InsightsPage() {
+  return (
+    <Suspense>
+      <InsightsEntry />
+    </Suspense>
+  );
+}
+
+function InsightsEntry() {
+  const wanted = useSearchParams().get("tab");
+  const initial = TABS.some((t) => t.id === wanted) ? (wanted as string) : "cards";
+  // Keyed, so pressing the AI button again while on this page switches back to the assistant.
+  return <InsightsView key={initial} initialTab={initial} />;
+}
+
+function InsightsView({ initialTab }: { initialTab: string }) {
   const role = useSession((s) => s.user!.role);
   const canRefresh = role !== "viewer";
-  const [tab, setTab] = useState("cards");
+  const [tab, setTab] = useState(initialTab);
   const [version, setVersion] = useState(0);
   const [type, setType] = useState("");
   const [severity, setSeverity] = useState("");

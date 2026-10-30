@@ -3,7 +3,7 @@
 Written as screens arrive.
 
 ## Signing in and moving around
-Sign in with your username and password. The menu on the left (the Menu button on a phone) shows only what your role can use. The sun/moon button switches light and dark mode. A Vezapp Admin picks a client under "Working on" in the top bar before opening Masters.
+The **Ask AI** button (sparkle) in the top bar, on every screen and for every role, opens the assistant chat. On a phone, a Vezapp Admin's "Working on" company picker sits on its own row under the top bar. Sign in with your username and password. The menu on the left (the Menu button on a phone) shows only what your role can use. The sun/moon button switches light and dark mode. A Vezapp Admin picks a client under "Working on" in the top bar before opening Masters.
 
 ## Adding a client and its people
 There is no public signup. Accounts are created by an administrator:
