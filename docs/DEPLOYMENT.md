@@ -20,7 +20,7 @@ This describes what a production deployment of Vezapp Planner needs. Nothing her
 | `COOKIE_SECURE` | `true` (the default when debug is off). |
 | `SECURE_SSL_REDIRECT` | `true` (default). Set `false` only if the proxy already redirects http to https. |
 | `SECURE_HSTS_SECONDS` | `31536000` (default). |
-| `DB_ENGINE`, `POSTGRES_*` | `postgres` and the database credentials. |
+| `DB_ENGINE`, `POSTGRES_*` | `postgres` and the database credentials. For a hosted database such as Supabase set `POSTGRES_SSLMODE=require`, and use the **session pooler** (port 5432, user `postgres.<project-ref>`), not the transaction pooler on 6543. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Optional. Without a key the assistant runs in basic mode. |
 | `ASSISTANT_MAX_TOKENS`, `ASSISTANT_DAILY_LIMIT` | Optional caps (800 and 200 by default). |
 | `DEMO_PASSWORD` | Leave empty. `seed_demo` refuses to run unless `DJANGO_DEBUG=true`. |
@@ -33,6 +33,12 @@ This describes what a production deployment of Vezapp Planner needs. Nothing her
 4. `npm ci && npm run build` in `frontend/`, then `npm start`.
 5. Put both behind HTTPS. The proxy must set `X-Forwarded-Proto: https`.
 6. Check `GET /api/v1/health` returns `{"status": "ok"}`.
+
+## Free demo deployment (Supabase + Render + Vercel)
+
+For a demo, not for real client data. Database: Supabase free (session pooler, `POSTGRES_SSLMODE=require`). API: Render free web service, set up by `render.yaml` at the repo root (gunicorn, health check `/api/v1/health`). Web: Vercel Hobby with root directory `frontend` and `BACKEND_URL` set to the Render URL **before** the build, because the `/api/*` rewrite is fixed at build time. The browser only talks to the Vercel domain, so the login cookies stay same-origin.
+
+Free-tier behaviour: Render sleeps the API after 15 minutes without traffic and takes about a minute to wake; Supabase pauses a project after about a week without use; Vercel Hobby is for non-commercial use only. Move to paid plans before any real client uses it.
 
 ## Security checklist
 

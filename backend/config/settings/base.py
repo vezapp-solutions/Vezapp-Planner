@@ -107,6 +107,8 @@ else:
             "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
             "HOST": os.environ.get("POSTGRES_HOST", "127.0.0.1"),
             "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+            # "require" for hosted databases (Supabase and similar); "prefer" suits a local one.
+            "OPTIONS": {"sslmode": os.environ.get("POSTGRES_SSLMODE", "prefer")},
         }
     }
 
