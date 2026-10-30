@@ -5,6 +5,14 @@ Written as screens arrive.
 ## Signing in and moving around
 Sign in with your username and password. The menu on the left (the Menu button on a phone) shows only what your role can use. The sun/moon button switches light and dark mode. A Vezapp Admin picks a client under "Working on" in the top bar before opening Masters.
 
+## Adding a client and its people
+There is no public signup. Accounts are created by an administrator:
+1. **Vezapp Admin, Companies, Add company.** Enter the client's name (GSTIN and address are optional). The standard operations and resource types are created automatically. To stop a client signing in, untick **Active**; nothing is deleted, and companies cannot be deleted from the screen.
+2. **Vezapp Admin, Users, Add user.** Choose the role **Company Admin**, pick the company, enter a username and an initial password (at least 8 characters, not a common one), and tell the person.
+3. **The Company Admin, Settings, Users, Add user** adds their own planners, viewers and further admins; they are always added to their own company.
+4. To reset a forgotten password, open the user, type a new password and save. Leave the box empty to keep the current one. There are no emailed invites or "forgot password" links yet.
+5. You cannot deactivate, delete or change the role of your own account, so an admin cannot lock themselves out.
+
 ## Masters (Company Admin edits; everyone else reads)
 Open **Masters** and work down the list, because each step uses the one before it.
 

@@ -9,7 +9,7 @@ export type Draft = Record<string, DraftValue>;
 export interface FieldSpec {
   key: string;
   label: string;
-  type: "text" | "textarea" | "number" | "select" | "checkbox" | "time" | "date" | "datetime" | "multi";
+  type: "text" | "password" | "textarea" | "number" | "select" | "checkbox" | "time" | "date" | "datetime" | "multi";
   options?: Option[];
   hint?: string;
   unit?: string;
@@ -214,6 +214,7 @@ export function RecordForm({
                   {...common}
                   type={type}
                   inputMode={f.type === "number" ? "decimal" : undefined}
+                  autoComplete={f.type === "password" ? "new-password" : undefined}
                   step={f.type === "number" ? (f.step ?? "any") : undefined}
                   min={f.min}
                   className={`field ${f.type === "number" ? "font-mono" : ""} ${f.unit ? "!pr-14" : ""}`}

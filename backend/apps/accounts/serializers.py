@@ -77,6 +77,17 @@ class UserSerializer(serializers.ModelSerializer):
 
         if self.instance is None and not attrs.get("password"):
             raise serializers.ValidationError({"password": "A password is required."})
+
+        # Nobody locks themselves out: no deactivating or changing the role of your own account.
+        if self.instance is not None and self.instance.pk == actor.pk:
+            if attrs.get("is_active") is False:
+                raise serializers.ValidationError(
+                    {"is_active": "You cannot deactivate your own account."}
+                )
+            if "role" in attrs and attrs["role"] != self.instance.role:
+                raise serializers.ValidationError(
+                    {"role": "You cannot change the role of your own account."}
+                )
         return attrs
 
     def validate_password(self, value):

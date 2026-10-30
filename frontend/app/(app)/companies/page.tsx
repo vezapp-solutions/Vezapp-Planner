@@ -1,14 +1,26 @@
 "use client";
 
-import { EmptyState, ErrorState, LoadingState, PageHeader } from "@/components/States";
+import { CrudScreen } from "@/components/CrudScreen";
+import { EmptyState, PageHeader } from "@/components/States";
+import type { FieldSpec } from "@/components/forms";
 import { formatDate } from "@/lib/format";
 import { useSession } from "@/lib/store";
-import type { Company, Page } from "@/lib/types";
-import { useApi } from "@/lib/use-api";
+import type { Company } from "@/lib/types";
+
+const FIELDS: FieldSpec[] = [
+  { key: "name", label: "Company name", type: "text", required: true, wide: true },
+  { key: "gstin", label: "GSTIN", type: "text", placeholder: "24ABCDE1234F1Z5", hint: "15 characters. Optional." },
+  { key: "address", label: "Address", type: "textarea" },
+  {
+    key: "is_active",
+    label: "Active",
+    type: "checkbox",
+    hint: "Untick to stop this company's users from signing in. Nothing is deleted.",
+  },
+];
 
 export default function CompaniesPage() {
   const role = useSession((s) => s.user!.role);
-  const companies = useApi<Page<Company>>("/companies");
 
   return (
     <>
@@ -17,35 +29,24 @@ export default function CompaniesPage() {
         <EmptyState title="You do not have access to this screen">
           Only a Vezapp Admin can manage companies.
         </EmptyState>
-      ) : companies.loading ? (
-        <LoadingState label="Loading companies" rows={4} />
-      ) : companies.error ? (
-        <ErrorState message={companies.error.message} onRetry={companies.reload} />
-      ) : companies.data && companies.data.results.length === 0 ? (
-        <EmptyState title="No companies yet" />
       ) : (
-        <div className="panel overflow-x-auto">
-          <table className="w-full min-w-[30rem] text-left text-sm">
-            <thead className="border-b border-line bg-sunken text-ink-soft">
-              <tr>
-                <th scope="col" className="px-4 py-2 font-medium">Company</th>
-                <th scope="col" className="px-4 py-2 font-medium">GSTIN</th>
-                <th scope="col" className="px-4 py-2 font-medium">Status</th>
-                <th scope="col" className="px-4 py-2 font-medium">Added</th>
-              </tr>
-            </thead>
-            <tbody>
-              {companies.data?.results.map((c) => (
-                <tr key={c.id} className="border-b border-line last:border-0">
-                  <td className="px-4 py-2 font-medium">{c.name}</td>
-                  <td className="px-4 py-2 font-mono">{c.gstin || "–"}</td>
-                  <td className="px-4 py-2">{c.is_active ? "Active" : "Inactive"}</td>
-                  <td className="px-4 py-2 font-mono">{formatDate(c.created_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CrudScreen<Company>
+          path="/companies"
+          noun="company"
+          fields={FIELDS}
+          canEdit
+          defaults={{ is_active: true }}
+          // Deleting a company would delete all of its data, so it is switched off here: deactivate instead.
+          canDelete={() => false}
+          emptyHint="Add the client first, then add its first Company Admin on the Users screen. The standard operations and resource types are created for you."
+          subtitle={(c) => `Added ${formatDate(c.created_at)}`}
+          columns={[
+            { header: "Company", cell: (c) => c.name },
+            { header: "GSTIN", cell: (c) => <span className="font-mono">{c.gstin || "–"}</span> },
+            { header: "Status", cell: (c) => (c.is_active ? "Active" : <span className="text-ink-soft">Inactive</span>) },
+            { header: "Added", cell: (c) => <span className="font-mono">{formatDate(c.created_at)}</span> },
+          ]}
+        />
       )}
     </>
   );
