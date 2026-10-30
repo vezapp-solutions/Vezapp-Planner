@@ -1,0 +1,224 @@
+@import "tailwindcss";
+
+/*
+  Palette is derived from the Vezapp logo (scripts/brand_assets.py):
+  bright teal #1ce4d4 and charcoal #343434. Bright teal is 1.6:1 on white, so it is an accent
+  only; text and buttons use a darker teal that clears 4.5:1 (checked in docs/ASSUMPTIONS.md).
+  Neutrals lean to moulding-sand warm grey in light mode and to a teal-tinted charcoal in dark.
+*/
+:root {
+  --ground: #f4f2ee;
+  --surface: #fbfaf8;
+  --sunken: #ebe8e2;
+  --line: #d6d2c9;
+  --ink: #232625;
+  --ink-soft: #565a57;
+  --brand: #1ce4d4;
+  --link: #0b6f67;
+  --action: #0b6f67;
+  --on-action: #ffffff;
+  --brand-wash: #dff3ef;
+  --danger: #a8261d;
+  --danger-wash: #f8e4e1;
+  --warn: #7a5200;
+  --warn-wash: #f6ead0;
+  --ok: #1a6a38;
+  --ok-wash: #def0e4;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --ground: #111618;
+  --surface: #181e21;
+  --sunken: #0d1113;
+  --line: #2a3438;
+  --ink: #e6ecea;
+  --ink-soft: #9fabA8;
+  --brand: #1ce4d4;
+  --link: #1ce4d4;
+  --action: #1ce4d4;
+  --on-action: #04201d;
+  --brand-wash: #12302e;
+  --danger: #ff8a80;
+  --danger-wash: #3a1a18;
+  --warn: #f0c060;
+  --warn-wash: #33290f;
+  --ok: #7fd49a;
+  --ok-wash: #143321;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-brand: var(--brand);
+  --color-link: var(--link);
+  --color-action: var(--action);
+  --color-on-action: var(--on-action);
+  --color-brand-wash: var(--brand-wash);
+  --color-danger: var(--danger);
+  --color-danger-wash: var(--danger-wash);
+  --color-warn: var(--warn);
+  --color-warn-wash: var(--warn-wash);
+  --color-ok: var(--ok);
+  --color-ok-wash: var(--ok-wash);
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-display: var(--font-barlow), var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+}
+
+html {
+  background: var(--ground);
+  caret-color: var(--link);
+  scrollbar-color: var(--line) transparent;
+  scrollbar-width: thin;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--brand);
+  color: #04201d;
+}
+
+:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+button,
+[role="button"],
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1;
+    transition: background-color 120ms, border-color 120ms, transform 60ms;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn-primary {
+    background: var(--action);
+    color: var(--on-action);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--action) 88%, black);
+  }
+  .btn-primary:disabled {
+    background: var(--sunken);
+    color: var(--ink-soft);
+    border-color: var(--line);
+  }
+  .btn-quiet {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  .btn-quiet:hover:not(:disabled) {
+    background: var(--sunken);
+  }
+  .btn-quiet:disabled {
+    color: var(--ink-soft);
+    opacity: 0.6;
+  }
+
+  .field {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 0.75rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid color-mix(in srgb, var(--ink) 38%, var(--ground));
+    border-radius: var(--radius-md);
+  }
+  .field:hover {
+    border-color: var(--ink-soft);
+  }
+  .field:disabled {
+    background: var(--sunken);
+    color: var(--ink-soft);
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--danger);
+  }
+
+  /* Ruled "shift board" panel: a flat surface with a hairline, no shadow. */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--sunken), var(--line), var(--sunken));
+    background-size: 200% 100%;
+    border-radius: var(--radius-sm);
+    animation: skeleton-sweep 1.4s ease-in-out infinite;
+  }
+}
+
+.slide-in {
+  animation: slide-in 160ms ease-out;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
