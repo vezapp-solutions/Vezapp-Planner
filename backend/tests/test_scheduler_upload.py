@@ -157,11 +157,11 @@ def build_200_rows():
                 "internal_date": "10-11-2026",
                 "actual_qty": 50,
             },
-            "error",
+            "warning",
             "actual qty without date",
         )
     for _ in range(2):
-        add({"part_number": "P1", "internal_date": "10-11-2026"}, "error", "no customer")
+        add({"part_number": "P1", "internal_date": "10-11-2026"}, "warning", "no customer")
     for i in range(6):
         add(
             {
@@ -252,12 +252,14 @@ def workbook_bytes(rows):
     ws = wb.active
     ws.append(HEADERS)
     for values, *_ in rows:
-        ws.append([values[k] for k in KEYS])
+        ws.append([values.get(k, "") for k in KEYS])
         for cell in ws[ws.max_row]:
             if isinstance(cell.value, str):
                 cell.data_type = "s"  # keep "=..." as text, as a user typing it with a quote would
         if isinstance(values["internal_date"], datetime):
-            ws.cell(row=ws.max_row, column=5).number_format = "dd-mm-yyyy"
+            ws.cell(
+                row=ws.max_row, column=KEYS.index("internal_date") + 1
+            ).number_format = "dd-mm-yyyy"
     buffer = io.BytesIO()
     wb.save(buffer)
     return buffer.getvalue()
@@ -273,7 +275,7 @@ def test_the_generator_really_makes_200_rows():
     assert len(rows) == 200
     from collections import Counter
 
-    assert Counter(status for _, status, _ in rows) == {"ok": 131, "error": 40, "warning": 29}
+    assert Counter(status for _, status, _ in rows) == {"ok": 131, "error": 35, "warning": 34}
 
 
 def test_200_row_file_with_deliberate_errors_is_validated_row_by_row(login, users, world):
@@ -283,8 +285,8 @@ def test_200_row_file_with_deliberate_errors_is_validated_row_by_row(login, user
     body = response.json()
 
     assert body["summary"] == {
-        "total": 200, "ok": 131, "warning": 29, "error": 40,
-        "insert": 160, "update": 0, "skip": 0, "unchanged": 0,
+        "total": 200, "ok": 131, "warning": 34, "error": 35,
+        "insert": 165, "update": 0, "skip": 0, "unchanged": 0,
     }  # fmt: skip
     assert len(body["rows"]) == 200
 
@@ -320,7 +322,7 @@ def test_messages_name_the_problem_precisely(login, users, world):
 
     assert "NOPE0" in by_note["unknown code"][0]["messages"][0]["text"]
     assert "future" in by_note["future actual"][0]["messages"][0]["text"]
-    assert by_note["actual qty without date"][0]["messages"][0]["field"] == "actual_qty"
+    assert "Same customer" in by_note["actual qty without date"][0]["messages"][0]["text"]
     assert {m["field"] for m in by_note["three problems"][0]["messages"]} == {
         "part_number",
         "dispatch_qty",
@@ -340,7 +342,7 @@ def test_commit_with_errors_is_refused_and_saves_nothing(login, users, world):
     response = upload(
         login(users["a_planner"]), "commit", workbook_bytes(build_200_rows()), mode="insert"
     )
-    assert response.status_code == 400 and "40 row(s) have errors" in response.json()["file"]
+    assert response.status_code == 400 and "35 row(s) have errors" in response.json()["file"]
     assert ScheduleLine.objects.count() == 0 and UploadBatch.objects.count() == 0  # all or nothing
 
 
@@ -356,24 +358,24 @@ def test_commit_skipping_error_rows_loads_the_rest_in_one_batch(login, users, wo
         body["rows_inserted"],
         body["rows_error"],
         body["rows_warning"],
-    ) == (200, 160, 40, 29)
-    assert ScheduleLine.objects.count() == 160
-    assert ScheduleLine.objects.filter(upload_batch_id=body["id"]).count() == 160
-    partial = ScheduleLine.objects.filter(status="dispatched")
-    assert partial.count() == 11 and all(line.actual_dispatched_qty == 250 for line in partial)
+    ) == (200, 165, 35, 34)
+    assert ScheduleLine.objects.count() == 165
+    assert ScheduleLine.objects.filter(upload_batch_id=body["id"]).count() == 165
+    partial = ScheduleLine.objects.filter(actual_dispatched_qty=250)  # part of each order has gone
+    assert partial.count() == 11 and all(line.status == "in_progress" for line in partial)
     assert (
         AuditLog.objects.filter(model_label="scheduler.ScheduleLine", action="create").count()
-        == 160
+        == 165
     )
 
     history = client.get("/api/v1/uploads/history").json()["results"]
     assert [(h["file_name"], h["rows_inserted"], h["username"]) for h in history] == [
-        ("schedule.xlsx", 160, "a_planner")
+        ("schedule.xlsx", 165, "a_planner")
     ]
 
     report = client.get(f"/api/v1/uploads/history/{body['id']}/errors.xlsx")
     sheet = load_workbook(io.BytesIO(report.content)).active
-    assert report.status_code == 200 and sheet.max_row == 1 + 40 + 29
+    assert report.status_code == 200 and sheet.max_row == 1 + 35 + 34
     assert [c.value for c in sheet[1]][:3] == ["Row", "Result", "Problem"]
 
 
@@ -386,7 +388,7 @@ def test_uploading_the_same_file_again_inserts_nothing_in_insert_mode(login, use
     assert again["insert"] == 0 and again["skip"] > 0
     refused = upload(client, "commit", content, mode="insert", skip_errors="true")
     assert refused.status_code == 400 and "nothing to save" in refused.json()["file"]
-    assert ScheduleLine.objects.count() == 160
+    assert ScheduleLine.objects.count() == 165
 
 
 def test_update_mode_changes_matching_lines_and_keeps_recorded_actuals(
@@ -465,7 +467,7 @@ def test_error_report_downloads_as_excel_and_never_runs_formulas(login, users, w
     assert response.status_code == 200 and response["Content-Type"] == XLSX
     sheet = load_workbook(io.BytesIO(response.content)).active
     assert sheet.max_row == 2
-    cell = sheet.cell(row=2, column=6)  # the part number as uploaded
+    cell = sheet.cell(row=2, column=4)  # the part number as uploaded
     assert cell.value.startswith("=HYPERLINK") and cell.data_type == "s"
     assert sheet.cell(row=2, column=2).value == "Error"
 
@@ -481,7 +483,7 @@ def test_the_template_round_trips_through_the_importer(login, users, world):
     client = login(users["a_planner"])
     wb = load_workbook(io.BytesIO(client.get("/api/v1/uploads/template").content))
     ws = wb["Schedule"]
-    ws.append(["C1", "", "P1", 10, "05-11-2026"])
+    ws.append(["P1", 10, "05-11-2026", "", "C1"])
     buffer = io.BytesIO()
     wb.save(buffer)
     body = upload(client, "preview", buffer.getvalue(), mode="insert").json()

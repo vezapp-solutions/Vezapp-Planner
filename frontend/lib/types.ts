@@ -90,6 +90,97 @@ export interface CompanySettings {
   flow_mode: "progressive" | "whole_lot";
   pour_same_shift: boolean;
   melt_loss_default_pct: string;
+  post_pour_days: number;
+  max_lead_days: number | null;
+}
+
+/** What this deployment plans (see PLANNED_OPERATIONS) and the company's pour-to-dispatch settings. */
+export interface PlanningConfig {
+  planned_operations: string[];
+  melting_plan_mode: "grade_heats" | "engine";
+  min_heat_fill_pct: number;
+  post_pour_days: number | null;
+  max_lead_days: number | null;
+}
+
+export interface MouldItem {
+  line_id: number;
+  part_number: string;
+  part_name: string;
+  customer_code: string;
+  moulds: number;
+  castings: number;
+  minutes: number;
+  due: string;
+  status: PlanLineStatus;
+}
+
+export interface MouldMachine {
+  id: number;
+  code: string;
+  load_minutes: number;
+  capacity_minutes: number;
+  used_pct: number | null;
+  moulds: number;
+  castings: number;
+  items: MouldItem[];
+}
+
+export interface MouldPlan {
+  from: string;
+  to: string;
+  days: {
+    date: string;
+    moulds: number;
+    castings: number;
+    shifts: { slot: number; shift: string; start: string; machines: MouldMachine[] }[];
+  }[];
+  warnings: {
+    line_id: number;
+    part_number: string;
+    customer_code: string;
+    due: string;
+    est_dispatch: string | null;
+    status: PlanLineStatus;
+    text: string;
+  }[];
+}
+
+export interface MeltHeat {
+  id: number;
+  heat_no: string;
+  furnace: string | null;
+  shift: string;
+  grade: string;
+  kg: number;
+  capacity_kg: number;
+  charge_kg: number;
+  fill_pct: number;
+  warnings: string[];
+  pours: { part_number: string; moulds: number; kg: number }[];
+}
+
+export interface MeltPlan {
+  enabled: boolean;
+  from: string;
+  to: string;
+  days: {
+    date: string;
+    kg: number;
+    heats: MeltHeat[];
+    furnaces: { day: string; furnace: string; heats: number; capacity_heats: number; kg: number; used_pct: number }[];
+    warnings: { day: string; kind: string; text: string; grade: string }[];
+  }[];
+  summary: { heats?: number; under_filled?: number; shortfall_heats?: number; grades?: number };
+}
+
+export interface OrderChange {
+  at: string;
+  user: string;
+  action: string;
+  field: string;
+  old: number | string | null;
+  new: number | string | null;
 }
 
 export interface ResourceType {
@@ -234,6 +325,8 @@ export interface RouteOp {
   machine_types: number[];
   except_ids: number[];
   time_by_type: Record<string, number>;
+  /** Moulds per hour this part makes on a named moulding line, by resource id (moulding only). */
+  rate_by_machine: Record<string, number>;
   effective_resource_ids: number[];
   derived: Record<string, Traced | { code: string; value: number | null; formula: string }[]>;
   issues: Issue[];
@@ -258,13 +351,26 @@ export interface AuditEntry {
   created_at: string;
 }
 
-export type LineStatus = "planned" | "in_progress" | "dispatched" | "cancelled";
+export type LineStatus = "planned" | "in_progress" | "dispatched" | "cancelled" | "closed";
 
 export const LINE_STATUS_LABEL: Record<LineStatus, string> = {
-  planned: "Planned",
-  in_progress: "In progress",
+  planned: "Open",
+  in_progress: "Open, part dispatched",
   dispatched: "Dispatched",
   cancelled: "Cancelled",
+  closed: "Closed",
+};
+
+/** What an order is doing in planning: the badge beside it. */
+export type OrderState = "closed" | "covered" | "cannot_plan" | "at_risk" | "planned" | "not_planned_yet";
+
+export const ORDER_STATE_LABEL: Record<OrderState, string> = {
+  closed: "Closed",
+  covered: "Covered by stock",
+  cannot_plan: "Cannot plan: missing master data",
+  at_risk: "At risk",
+  planned: "Planned",
+  not_planned_yet: "Not planned yet",
 };
 
 export interface ScheduleLine {
@@ -280,6 +386,14 @@ export interface ScheduleLine {
   internal_dispatch_date: string;
   actual_dispatch_date: string | null;
   actual_dispatched_qty: number | null;
+  wip_qty: number;
+  fg_qty: number;
+  /** Order qty less WIP, FG and dispatched (never below 0): what is still to be produced. */
+  balance: number;
+  is_open: boolean;
+  plan_state: OrderState;
+  plan_reasons: string[];
+  est_dispatch_date: string | null;
   remarks: string;
   status: LineStatus;
   month: string;
@@ -300,6 +414,14 @@ export interface UploadMessage {
   level: "error" | "warning";
   field: string;
   text: string;
+  code?: string;
+}
+
+export interface UnmatchedPart {
+  part_number: string;
+  rows: number[];
+  qty: number;
+  customer_code: string;
 }
 
 export interface UploadRow {
@@ -323,6 +445,7 @@ export interface UploadPreview {
     skip: number;
     unchanged: number;
   };
+  unmatched_parts: UnmatchedPart[];
   rows: UploadRow[];
 }
 
@@ -362,6 +485,8 @@ export interface Plan {
     lines?: number;
     by_status?: Partial<Record<PlanLineStatus, number>>;
     runtime_ms?: number;
+    excluded?: { covered: number; cannot_plan: number };
+    melt?: { heats: number; under_filled: number; shortfall_heats: number; grades: number } | null;
   };
   bottleneck: { id: number; code: string; name: string } | null;
   stale: boolean;

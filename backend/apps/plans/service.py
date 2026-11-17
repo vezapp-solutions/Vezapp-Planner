@@ -1,17 +1,30 @@
 """Calculate a plan and keep its results: the only place the engine meets the database."""
 
 from datetime import date
+from decimal import Decimal
 
+from django.conf import settings as django_settings
 from django.db import connection, transaction
 from django.db.models import Max
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from planning.engine import run_plan
+from planning.melt import MeltPlan, plan_melt
 from planning.model import PlanResult
 
-from .inputs import build_input, data_fingerprint
-from .models import Plan, PlanAllocation, PlanLine, PlanLoad, PlanOperation, PlanSlot, PlanStatus
+from .inputs import build_plan_context, data_fingerprint, heat_planner_on
+from .models import (
+    Plan,
+    PlanAllocation,
+    PlanHeat,
+    PlanHeatPour,
+    PlanLine,
+    PlanLoad,
+    PlanOperation,
+    PlanSlot,
+    PlanStatus,
+)
 
 BATCH = 1000
 _TZ = timezone.get_default_timezone()  # the engine's clock: Asia/Kolkata
@@ -40,7 +53,9 @@ def _requirement_json(req) -> dict:
     }
 
 
-def _save(plan: Plan, inp, lines_by_id, result: PlanResult, resources_by_id) -> None:
+def _save(
+    plan: Plan, inp, lines_by_id, result: PlanResult, resources_by_id
+) -> tuple[dict[int, PlanLine], dict[int, int]]:
     company = plan.company
     plan_lines: dict[int, PlanLine] = {}
     rows = []
@@ -132,6 +147,47 @@ def _save(plan: Plan, inp, lines_by_id, result: PlanResult, resources_by_id) -> 
             for (rid, idx), c in result.loads.items()
         ),
     )  # fmt: skip
+    return plan_lines, slot_ids
+
+
+def _save_heats(
+    plan: Plan, melt: MeltPlan, plan_lines: dict[int, PlanLine], slot_ids: dict[int, int]
+) -> None:
+    """Store the melt plan: the heats, and which moulds of which order each one pours."""
+    heat_rows = [
+        PlanHeat(
+            company_id=plan.company_id,
+            plan=plan,
+            day=h.day,
+            sequence=n,
+            slot_id=slot_ids.get(h.slot_idx) if h.slot_idx is not None else None,
+            shift_name=h.shift_name,
+            furnace_id=h.furnace_id,
+            furnace_code=h.furnace_code,
+            heat_no=h.heat_no,
+            grade=h.grade,
+            kg=float(h.kg),
+            capacity_kg=float(h.capacity_kg),
+            charge_kg=float(h.charge_kg),
+            fill_pct=round(float(h.fill_pct), 1),
+            warnings=h.warnings,
+        )
+        for n, h in enumerate(melt.heats)
+    ]
+    created = PlanHeat.objects.bulk_create(heat_rows, batch_size=BATCH)
+    pours = [
+        PlanHeatPour(
+            company_id=plan.company_id,
+            heat=row,
+            plan_line=plan_lines.get(p.line_id),
+            part_number=p.part_number,
+            moulds=p.moulds,
+            kg=float(p.kg),
+        )
+        for row, h in zip(created, melt.heats, strict=True)
+        for p in h.pours
+    ]
+    PlanHeatPour.objects.bulk_create(pours, batch_size=BATCH)
 
 
 def _insert(model, columns: tuple[str, ...], rows) -> None:
@@ -151,13 +207,21 @@ def calculate(plan: Plan, plan_from: date | None = None) -> Plan:
         raise ValidationError({"detail": "A confirmed plan is frozen. Start a new plan instead."})
     company = plan.company
     plan_from = plan_from or timezone.localdate()
-    inp, lines_by_id = build_input(company, plan_from)
+    ctx = build_plan_context(company, plan_from)
+    inp, lines_by_id = ctx.inp, ctx.lines_by_id
+    # Orders left out of the plan (covered by stock, or missing master data) are not engine lines.
+    lines_by_id = {k: v for k, v in lines_by_id.items() if k not in ctx.excluded}
     result = run_plan(inp)
 
+    plan.heats.all().delete()  # cascades to the heats' pours
     plan.lines.all().delete()  # cascades to operations and allocations
     plan.slots.all().delete()  # cascades to allocations and loads
     resources_by_id = {r.id: r for r in inp.resources}
-    _save(plan, inp, lines_by_id, result, resources_by_id)
+    plan_lines, slot_ids = _save(plan, inp, lines_by_id, result, resources_by_id)
+    melt = None
+    if heat_planner_on():
+        melt = plan_melt(inp, result, Decimal(django_settings.MIN_HEAT_FILL_PCT))
+        _save_heats(plan, melt, plan_lines, slot_ids)
 
     codes = {r.id: r for r in inp.resources}
     bottleneck_days = [
@@ -179,8 +243,40 @@ def calculate(plan: Plan, plan_from: date | None = None) -> Plan:
         "pour_same_shift": inp.settings.pour_same_shift,
         "horizon_days": inp.settings.horizon_days,
         "default_melt_loss_pct": float(inp.settings.default_melt_loss_pct),
+        "post_pour_days": inp.settings.post_pour_days,
+        "max_lead_days": inp.settings.max_lead_days,
+        "planned_operations": sorted(django_settings.PLANNED_OPERATIONS),
+        "melting_plan_mode": django_settings.MELTING_PLAN_MODE,
     }
-    plan.summary = {**result.summary, "bottlenecks": bottleneck_days}
+    excluded = {
+        "covered": sum(1 for e in ctx.excluded.values() if e.kind == "covered"),
+        "cannot_plan": sum(1 for e in ctx.excluded.values() if e.kind == "cannot_plan"),
+    }
+    plan.summary = {
+        **result.summary,
+        "bottlenecks": bottleneck_days,
+        "excluded": excluded,
+        "melt": None
+        if melt is None
+        else {
+            **melt.summary,
+            "warnings": [
+                {"day": w.day.isoformat(), "kind": w.kind, "text": w.text, "grade": w.grade}
+                for w in melt.warnings
+            ],
+            "days": [
+                {
+                    "day": d.day.isoformat(),
+                    "furnace": d.furnace_code,
+                    "heats": d.heats,
+                    "capacity_heats": d.capacity_heats,
+                    "kg": float(d.kg),
+                    "used_pct": round(float(d.used_pct), 1),
+                }
+                for d in melt.days
+            ],
+        },
+    }
     plan.bottleneck_resource_id = result.bottleneck_overall
     plan.save()
 

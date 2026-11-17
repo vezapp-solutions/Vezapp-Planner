@@ -8,6 +8,7 @@ import { SparkleIcon } from "@/components/insights/AiBadge";
 import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { navFor } from "@/lib/nav";
+import { usePlanningConfig } from "@/lib/planning-config";
 import { useSession } from "@/lib/store";
 import { ROLE_LABEL, type Company, type Page } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
@@ -16,10 +17,11 @@ import { Select } from "@/components/ui/Select";
 function SideNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const role = useSession((s) => s.user!.role);
+  const { config } = usePlanningConfig();
 
   return (
     <nav aria-label="Main" className="flex flex-col py-3">
-      {navFor(role).map((item) => {
+      {navFor(role, config?.planned_operations).map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         const base =
           "flex min-h-10 items-center justify-between gap-2 border-l-[3px] px-4 text-[0.9375rem]";

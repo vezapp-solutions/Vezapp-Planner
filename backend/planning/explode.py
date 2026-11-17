@@ -29,6 +29,8 @@ def unit_minutes(op: OpSpec, resource: ResourceSpec | None) -> Decimal | None:
 
     A step that times each machine type (a VMC takes longer than an HMC) uses the time of the
     machine's type, and the step's default time for a type with none of its own."""
+    if resource is not None and resource.id in op.time_by_resource:
+        return op.time_by_resource[resource.id]
     if resource is not None and op.time_by_type and resource.type_id in op.time_by_type:
         return op.time_by_type[resource.type_id]
     explicit = op.time_value
@@ -144,7 +146,7 @@ def explode_line(
         first = next(iter(allowed), None)
         mpu = unit_minutes(op, first)
         averaged = False
-        if op.time_by_type:
+        if op.time_by_type or op.time_by_resource:
             # Machines of different types take different times, so the requirement (and with it
             # the due-date load) uses their average. The allocation then uses each machine's own.
             times = [t for t in (unit_minutes(op, r) for r in allowed) if t]

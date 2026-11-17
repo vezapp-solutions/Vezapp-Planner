@@ -95,7 +95,6 @@ def test_planner_creates_edits_and_deletes_a_line(login, users, basics):
         {"dispatch_qty": -1},
         {"internal_dispatch_date": "not-a-date"},
         {"actual_dispatch_date": "2999-01-01"},
-        {"actual_dispatched_qty": 5},
         {"status": "dispatched"},
     ],
 )
@@ -117,10 +116,10 @@ def test_actual_date_marks_the_line_dispatched_and_clearing_it_undoes_that(
     obj = line(company_a, basics)
     done = client.patch(
         f"/api/v1/schedule-lines/{obj.pk}",
-        {"actual_dispatch_date": YESTERDAY, "actual_dispatched_qty": 60},
+        {"actual_dispatch_date": YESTERDAY},
         **J,
     ).json()
-    assert done["status"] == "dispatched" and done["actual_dispatched_qty"] == 60
+    assert done["status"] == "dispatched"
     undone = client.patch(
         f"/api/v1/schedule-lines/{obj.pk}",
         {"actual_dispatch_date": None, "actual_dispatched_qty": None},

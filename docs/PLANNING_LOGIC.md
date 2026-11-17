@@ -137,3 +137,52 @@ Example: `OP10`, 200 pieces, VMC 12 min and HMC 6 min per piece, setup 45 min, o
 
 **The Machine shop** (`/machine-shop`) reads the stored plan: for each machine and working day, capacity (after downtime and its shifts), planned load and setup, free minutes = capacity − load, and the operations on it. Nothing is recalculated there.
 
+
+## 12. Moulding and melting only: orders with stock, mould plan, melt plan
+
+This phase plans the getting of castings made: moulds on the moulding machines, then metal in the furnaces.
+Fettling, machining and the later operations stay in the masters but are not planned.
+
+**What is planned.** `PLANNED_OPERATIONS` (settings, default `moulding,melting`) lists the operations the plan covers.
+`plans/inputs.load_parts` drops every other enabled operation from a part's route before the engine sees it. Adding
+`knockout`, `fettling`, `machining` and so on there switches them back on. `MELTING_PLAN_MODE` is `grade_heats`
+(melting is planned by the heat planner below) or `engine` (the original per-part melting that the engine schedules
+together with moulding).
+
+**Orders and balance.** An order is a schedule line. Only **Open** orders (status planned or in progress) are planned;
+Closed, dispatched and cancelled orders stay visible as history. For each open order
+
+`balance = max(0, order qty − (WIP stock + FG stock + dispatched qty))`.
+
+A balance of 0 is **covered by stock**: nothing is planned. Otherwise the engine plans the balance:
+`pieces to pour = ceil(balance × (1 + rejection% ÷ 100))`, `moulds = ceil(pieces ÷ cavities per mould)`.
+An order whose part lacks master data is **cannot plan**; `planning/checks.plannability` names what is missing
+(no moulding operation, no allowed moulding machine, no moulding rate, no pouring weight, no grade, no furnace with a
+heat size). Both kinds are left out of the engine and shown with their reason.
+
+**Dates.** Orders are planned earliest dispatch date first (then customer priority A, B, C, then entry order).
+`post_pour_days` (company setting, default 3) is the number of working days kept between the last pour and the dispatch
+date: the deadline moves that much earlier and the estimated dispatch is the last pour plus those days.
+`max_lead_days` (company setting, default 7) is the release window: an order is not started more than that many
+working days before its deadline, so a June order is not moulded in November. Blank means as early as capacity allows.
+
+**Mould rate.** Moulds per hour for a part can be entered on the part's moulding operation (stored as minutes per
+mould) and per moulding line (`extra.rate_by_machine`, read as `OpSpec.time_by_resource`). Order of preference: the
+part's rate on that machine, the part's rate, the machine's own rate. The mould plan shows, per day, shift and machine,
+the part, moulds, castings and how much of the machine's capacity is used.
+
+**Melt plan (`planning/melt.py`).** It runs after the engine inside the same calculation, so the two plans cannot drift
+apart. For each working day:
+
+1. Metal per grade `= sum(moulds made that day × pouring weight per mould)`, from the moulding allocations.
+2. One heat is one grade; grades are never mixed. A heat takes whole moulds of a grade, up to the furnace's heat size
+   less the melt loss (`heat kg × (1 − melt loss% ÷ 100)`). Parts and orders of the same grade share heats.
+3. Grades are handled earliest dispatch first. Heats are given to furnaces and shifts in order, within each furnace's
+   capacity: `heats per shift = min(max heats per shift, floor(free minutes ÷ heat minutes))`, after shifts, holidays
+   and downtime.
+4. A heat no furnace can take is kept as a heat with **no furnace room** (a shortfall warning); it does not slow the
+   moulds. A heat filled below `MIN_HEAT_FILL_PCT` (default 70) is **under-filled**. The orders in a shortfall heat are
+   shown as at risk.
+
+The result is stored in `PlanHeat` and `PlanHeatPour`. Insights read it (furnace shortfall, under-filled heats, planned
+metal by grade). The what-if tool plans moulding only; it does not rerun the melt plan.

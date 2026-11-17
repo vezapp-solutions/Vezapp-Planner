@@ -63,6 +63,15 @@ class CompanySettings(TimeStampedModel):
         validators=[MinValueValidator(0), MaxValueValidator(Decimal("99.99"))],
     )
 
+    # Working days the plan keeps between the last pour and the dispatch date, for shakeout, fettling,
+    # machining and packing, which are not planned in this phase.
+    post_pour_days = models.PositiveSmallIntegerField(default=3, validators=[MaxValueValidator(60)])
+    # An order is not started more than this many working days before its deadline (blank: as early
+    # as capacity allows).
+    max_lead_days = models.PositiveSmallIntegerField(
+        null=True, blank=True, default=7, validators=[MaxValueValidator(120)]
+    )
+
     class Meta:
         verbose_name_plural = "company settings"
 

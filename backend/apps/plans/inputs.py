@@ -1,9 +1,11 @@
 """Turns a company's masters and schedule into the planning engine's PlanInput, and fingerprints them."""
 
 import hashlib
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from decimal import Decimal
 
+from django.conf import settings as django_settings
 from django.db.models import Count, Max
 from django.utils import timezone
 
@@ -15,12 +17,14 @@ from apps.masters.machines import (
     engine_extra,
     machines_by_type,
     name_of,
+    times_by_resource,
     times_by_type,
 )
 from apps.masters.models import Customer, OperationType, Part, PartOperation
 from apps.resources.models import AdjustmentKind, CapacityAdjustment, Downtime, Resource, Status
-from apps.scheduler.models import LineStatus, ScheduleLine
+from apps.scheduler.models import OPEN_STATUSES, ScheduleLine
 from planning.calendar import ShiftSpec
+from planning.checks import plannability
 from planning.model import (
     ExtraShift,
     LineInput,
@@ -83,35 +87,66 @@ def plan_settings(company, plan_from: date) -> PlanSettings:
         flow_mode=s.flow_mode,
         pour_same_shift=s.pour_same_shift,
         default_melt_loss_pct=Decimal(str(s.melt_loss_default_pct)),
+        post_pour_days=s.post_pour_days,
+        max_lead_days=s.max_lead_days,
     )
 
 
-def build_input(company, plan_from: date) -> tuple[PlanInput, dict[int, ScheduleLine]]:
-    """Everything the engine needs. Returns the input and the schedule lines by id."""
-    settings = plan_settings(company, plan_from)
+def planned_operations() -> set[str]:
+    """Operation type codes the plan covers in this phase (settings.PLANNED_OPERATIONS)."""
+    return {code.strip().lower() for code in django_settings.PLANNED_OPERATIONS if code.strip()}
 
-    lines_qs = (
-        ScheduleLine.objects.for_company(company)
-        .filter(status__in=[LineStatus.PLANNED, LineStatus.IN_PROGRESS])
-        .select_related("customer", "part")
-    )
-    lines = list(lines_qs)
-    part_ids = {ln.part_id for ln in lines}
 
+def heat_planner_on() -> bool:
+    """True when melting is planned by the grade-wise heat planner that follows the mould plan."""
+    return "melting" in planned_operations() and django_settings.MELTING_PLAN_MODE == "grade_heats"
+
+
+@dataclass
+class Excluded:
+    """An open order that is left out of the plan, and why."""
+
+    line_id: int
+    kind: str  # covered | cannot_plan
+    reasons: list[str] = field(default_factory=list)
+
+
+@dataclass
+class PlanContext:
+    inp: PlanInput
+    lines_by_id: dict[int, ScheduleLine]
+    excluded: dict[int, Excluded]
+
+
+def load_parts(company, part_ids) -> dict[int, PartSpec]:
+    """The engine's view of each part: its enabled route, limited to the operations being planned."""
+    planned = planned_operations()
+    heats = heat_planner_on()
     seq_of = {o.code: o.default_sequence for o in OperationType.objects.for_company(company)}
     rejection_seq = seq_of.get(CompanySettings.objects.get(company=company).rejection_booked_at, 50)
     by_type = machines_by_type(company)
 
+    routes: dict[int, list] = {}
+    for o in (
+        PartOperation.objects.for_company(company)
+        .filter(part_id__in=part_ids, enabled=True)
+        .select_related("op_type")
+        .prefetch_related("resources")
+        .order_by("sequence", "step", "id")
+    ):
+        routes.setdefault(o.part_id, []).append(o)
+
     parts: dict[int, PartSpec] = {}
     for part in Part.objects.for_company(company).filter(pk__in=part_ids).select_related("grade"):
         ops = []
-        route = (
-            part.operations.filter(enabled=True)
-            .select_related("op_type")
-            .prefetch_related("resources")
-            .order_by("sequence", "step", "id")
-        )
-        for o in route:
+        melt_loss = None
+        for o in routes.get(part.pk, []):
+            if o.op_type.kind == "melting" and (o.extra or {}).get("melt_loss_pct") is not None:
+                melt_loss = Decimal(str((o.extra or {})["melt_loss_pct"]))
+            if o.op_type.code not in planned:
+                continue  # not planned in this phase; it stays in the masters
+            if heats and o.op_type.kind == "melting":
+                continue  # the heat planner pours what the moulds need, grade by grade
             ops.append(
                 OpSpec(
                     code=code_of(o),
@@ -130,6 +165,7 @@ def build_input(company, plan_from: date) -> tuple[PlanInput, dict[int, Schedule
                     step=o.step,
                     setup_minutes=Decimal(str(o.setup_minutes or 0)),
                     time_by_type=times_by_type(o),
+                    time_by_resource=times_by_resource(o),
                 )
             )
         parts[part.pk] = PartSpec(
@@ -144,8 +180,12 @@ def build_input(company, plan_from: date) -> tuple[PlanInput, dict[int, Schedule
             rejection_pct=Decimal(str(part.rejection_pct)),
             ops=tuple(ops),
             rejection_seq=rejection_seq,
+            melt_loss_pct=melt_loss,
         )
+    return parts
 
+
+def load_resources(company) -> list[ResourceSpec]:
     resources = []
     for r in (
         Resource.objects.for_company(company)
@@ -171,19 +211,70 @@ def build_input(company, plan_from: date) -> tuple[PlanInput, dict[int, Schedule
                 max_heats_per_shift=r.max_heats_per_shift,
             )
         )
+    return resources
 
-    line_inputs = [
-        LineInput(
-            id=ln.pk,
-            part_id=ln.part_id,
-            qty=ln.dispatch_qty,
-            internal_date=ln.internal_dispatch_date,
-            customer_id=ln.customer_id,
-            priority=ln.customer.priority,
-            entry_order=ln.pk,
+
+def part_reasons(company, part_ids) -> dict[int, list[str]]:
+    """What master data is missing for each part before its orders can be planned (empty: nothing)."""
+    parts = load_parts(company, part_ids)
+    resources = load_resources(company)
+    return {
+        pid: (plannability(parts[pid], resources) if pid in parts else ["The part was not found."])
+        for pid in part_ids
+    }
+
+
+def build_input(company, plan_from: date) -> tuple[PlanInput, dict[int, ScheduleLine]]:
+    """Everything the engine needs. Returns the input and the schedule lines by id."""
+    ctx = build_plan_context(company, plan_from)
+    return ctx.inp, ctx.lines_by_id
+
+
+def build_plan_context(company, plan_from: date) -> PlanContext:
+    """The engine input, plus the open orders that were left out of it and why.
+
+    Only open orders are planned, and only for the balance still to be produced: the order less
+    stock in process, finished stock and what has been dispatched. An order with nothing left is
+    covered by stock; one whose part lacks master data is reported as one that cannot be planned."""
+    settings = plan_settings(company, plan_from)
+    lines_qs = (
+        ScheduleLine.objects.for_company(company)
+        .filter(status__in=OPEN_STATUSES)
+        .select_related("customer", "part")
+    )
+    lines = list(lines_qs)
+    part_ids = {ln.part_id for ln in lines}
+
+    parts = load_parts(company, part_ids)
+    resources = load_resources(company)
+
+    excluded: dict[int, Excluded] = {}
+    missing: dict[int, list[str]] = {}
+    line_inputs = []
+    for ln in lines:
+        balance = ln.balance
+        if balance <= 0:
+            excluded[ln.pk] = Excluded(ln.pk, "covered")
+            continue
+        if ln.part_id not in missing:
+            spec = parts.get(ln.part_id)
+            missing[ln.part_id] = (
+                plannability(spec, resources) if spec is not None else ["The part was not found."]
+            )
+        if missing[ln.part_id]:
+            excluded[ln.pk] = Excluded(ln.pk, "cannot_plan", missing[ln.part_id])
+            continue
+        line_inputs.append(
+            LineInput(
+                id=ln.pk,
+                part_id=ln.part_id,
+                qty=balance,
+                internal_date=ln.internal_dispatch_date,
+                customer_id=ln.customer_id,
+                priority=ln.customer.priority,
+                entry_order=ln.pk,
+            )
         )
-        for ln in lines
-    ]
     horizon_end = plan_from + timedelta(days=settings.max_window_days)
     extra_shifts, overtime = load_adjustments(company, plan_from)
     inp = PlanInput(
@@ -196,7 +287,7 @@ def build_input(company, plan_from: date) -> tuple[PlanInput, dict[int, Schedule
         extra_shifts=extra_shifts,
         overtime=overtime,
     )
-    return inp, {ln.pk: ln for ln in lines}
+    return PlanContext(inp, {ln.pk: ln for ln in lines}, excluded)
 
 
 def load_adjustments(

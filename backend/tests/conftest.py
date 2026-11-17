@@ -8,6 +8,32 @@ from apps.companies.models import Company, Plant
 PASSWORD = "Test-pass-12345"
 
 
+@pytest.fixture(autouse=True)
+def legacy_company_settings(db):
+    """New companies plan like before (no days reserved after pouring, no release window); the
+    phase tests set the real defaults themselves."""
+    from django.db.models.signals import post_save
+
+    def receiver(sender, instance, created, raw=False, **kwargs):
+        if created and not raw:
+            from apps.companies.models import CompanySettings
+
+            CompanySettings.objects.filter(company=instance).update(
+                post_pour_days=0, max_lead_days=None
+            )
+
+    post_save.connect(receiver, sender=Company, weak=False, dispatch_uid="test-legacy-settings")
+    yield
+    post_save.disconnect(sender=Company, dispatch_uid="test-legacy-settings")
+
+
+@pytest.fixture
+def phase_defaults(settings):
+    """The settings a real deployment starts with: moulding and melting planned, heats by grade."""
+    settings.PLANNED_OPERATIONS = ["moulding", "melting"]
+    settings.MELTING_PLAN_MODE = "grade_heats"
+
+
 @pytest.fixture
 def company_a(db):
     return Company.objects.create(name="Foundry A")

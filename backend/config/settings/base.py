@@ -45,6 +45,17 @@ if not DEBUG and (len(SECRET_KEY) < 32 or SECRET_KEY.startswith("change-me")):
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
+# --- Planning scope -----------------------------------------------------------------------------
+# Only these operations are planned. The others stay in the masters and the route editor and are
+# marked "Phase 2 / not planned" on the planning screens. Add "knockout", "fettling", "machining"...
+# here to switch them back on.
+PLANNED_OPERATIONS = env_list("PLANNED_OPERATIONS", "moulding,melting")
+# grade_heats: melting is planned by the grade-wise heat planner that follows the mould plan.
+# engine: the original per-part melting that the engine schedules together with moulding.
+MELTING_PLAN_MODE = os.environ.get("MELTING_PLAN_MODE", "grade_heats")
+# A heat filled below this share of what the furnace can tap is reported as under-filled.
+MIN_HEAT_FILL_PCT = int(os.environ.get("MIN_HEAT_FILL_PCT", "70"))
+
 # --- Transport and browser protections ----------------------------------------------------------
 # Behind the HTTPS proxy of a real deployment: redirect to HTTPS, tell browsers to keep using it,
 # and trust the proxy's forwarded-protocol header. Set SECURE_SSL_REDIRECT=false only if the proxy

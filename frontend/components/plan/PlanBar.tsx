@@ -62,7 +62,7 @@ export function PlanBar({
           <p className="font-mono">{plan.calculated_at ? formatDateTime(plan.calculated_at) : "–"}</p>
         </div>
         <div className="text-sm">
-          <p className="text-xs text-ink-soft">Lines</p>
+          <p className="text-xs text-ink-soft">Planned orders</p>
           <p className="font-mono">
             {formatNumber(plan.summary.lines ?? 0)}
             <span className="ml-2 text-xs text-ink-soft">
@@ -81,9 +81,9 @@ export function PlanBar({
             {draft && (
               <>
                 <button type="button" className="btn btn-primary !min-h-9" onClick={() => run("recalc")} disabled={busy !== null}>
-                  {busy === "recalc" ? "Calculating…" : "Recalculate"}
+                  {busy === "recalc" ? "Planning…" : "Run planning"}
                 </button>
-                <button type="button" className="btn btn-quiet !min-h-9" onClick={() => run("confirm")} disabled={busy !== null || plan.stale} title={plan.stale ? "Recalculate first" : "Freeze this plan as the baseline"}>
+                <button type="button" className="btn btn-quiet !min-h-9" onClick={() => run("confirm")} disabled={busy !== null || plan.stale} title={plan.stale ? "Run planning first" : "Freeze this plan as the baseline"}>
                   {busy === "confirm" ? "Confirming…" : "Confirm plan"}
                 </button>
               </>
@@ -99,11 +99,11 @@ export function PlanBar({
 
       {plan.stale && draft && (
         <div role="status" className="flex flex-wrap items-center gap-3 rounded-md border border-warn bg-warn-wash px-4 py-2 text-sm">
-          <span className="font-medium text-warn">This plan is out of date.</span>
+          <span className="font-medium text-warn">Stale: run planning again.</span>
           <span>{plan.stale_reasons.join(" ")}</span>
           {canEdit && (
             <button type="button" className="btn btn-quiet !min-h-8 ml-auto" onClick={() => run("recalc")} disabled={busy !== null}>
-              Recalculate now
+              Run planning
             </button>
           )}
         </div>

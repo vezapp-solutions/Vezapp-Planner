@@ -158,6 +158,51 @@ class PlanAllocation(PlanRow):
         indexes = [models.Index(fields=["plan", "slot"])]
 
 
+class PlanHeat(PlanRow):
+    """One heat of the melt plan: one grade, poured from one furnace in one shift of one day."""
+
+    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name="heats")
+    day = models.DateField()
+    sequence = models.PositiveIntegerField(default=0)  # order within the plan
+    slot = models.ForeignKey(
+        PlanSlot, null=True, blank=True, on_delete=models.CASCADE, related_name="heats"
+    )  # empty when no furnace had room
+    shift_name = models.CharField(max_length=60, blank=True)
+    furnace = models.ForeignKey(
+        "resources.Resource", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    furnace_code = models.CharField(max_length=30, blank=True)
+    heat_no = models.CharField(max_length=30)
+    grade = models.CharField(max_length=100)
+    kg = models.FloatField(default=0)  # metal poured
+    capacity_kg = models.FloatField(default=0)  # what the furnace can tap in one heat
+    charge_kg = models.FloatField(default=0)  # metal to melt, covering the melt loss
+    fill_pct = models.FloatField(default=0)
+    warnings = models.JSONField(default=list, blank=True)
+
+    def __str__(self):
+        return f"{self.heat_no} {self.grade} {self.kg:.0f} kg"
+
+    class Meta:
+        ordering = ["day", "sequence"]
+        indexes = [models.Index(fields=["plan", "day"])]
+
+
+class PlanHeatPour(PlanRow):
+    """The moulds of one part (one order line) that a heat pours."""
+
+    heat = models.ForeignKey(PlanHeat, on_delete=models.CASCADE, related_name="pours")
+    plan_line = models.ForeignKey(
+        PlanLine, null=True, blank=True, on_delete=models.CASCADE, related_name="+"
+    )
+    part_number = models.CharField(max_length=60)
+    moulds = models.PositiveIntegerField()
+    kg = models.FloatField(default=0)
+
+    def __str__(self):
+        return f"{self.part_number} x {self.moulds}"
+
+
 class PlanLoad(PlanRow):
     """Load, capacity and required load of one resource in one shift (only shifts that matter)."""
 

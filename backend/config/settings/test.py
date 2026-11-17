@@ -11,6 +11,14 @@ SECURE_SSL_REDIRECT = False  # the test client speaks plain http
 # few tests of the Claude layer switch it on with a stand-in client.
 ANTHROPIC_API_KEY = ""
 
+# The long-standing plan tests exercise the full route with melting scheduled by the engine. The
+# moulding-and-melting phase tests switch to the real defaults with the `phase_defaults` fixture.
+PLANNED_OPERATIONS = [
+    "core", "moulding", "melting", "knockout", "shot_blasting", "fettling", "grinding",
+    "heat_treatment", "machining", "painting", "inspection", "packing", "dispatch",
+]  # fmt: skip
+MELTING_PLAN_MODE = "engine"
+
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]

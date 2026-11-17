@@ -385,6 +385,54 @@ def melting(melt: Sequence[MeltRow], furnace_days: Sequence[FurnaceDay]) -> list
     return cards
 
 
+def melt_warning_cards(warnings: Sequence[dict]) -> list[Card]:
+    """Furnace heats that no furnace could take, and heats poured part-full, from the melt plan."""
+    cards: list[Card] = []
+    short = [w for w in warnings if w["kind"] in ("shortfall", "no_furnace")]
+    if short:
+        days = sorted({w["day"] for w in short})
+        grades = sorted({w["grade"] for w in short if w["grade"]})
+        critical = len(days) >= rules.SHORTFALL_DAYS_CRITICAL
+        cards.append(
+            Card(
+                key="melting:shortfall", type="melting", severity="critical" if critical else "warning",
+                title="Furnace capacity is short",
+                message=(
+                    f"{plural(len(short), 'heat')} on {plural(len(days), 'day')} have no furnace room, "
+                    f"first on {fmt_date(date.fromisoformat(days[0]))}."
+                ),
+                numbers={"heats": len(short), "days": len(days), "grades": grades, "first_day": days[0]},
+                entities={"dates": days[:10], "grades": grades},
+                action="Add a furnace shift or overtime on those days, or move orders to quieter days.",
+                why=(
+                    "The mould plan decides how much metal each day needs. Heats are given to furnaces within their "
+                    "heats per shift, heat time, shifts and downtime; a heat that does not fit is reported here.",
+                ),
+                impact=min(10.0, len(short) / 2),
+            )
+        )  # fmt: skip
+    under = [w for w in warnings if w["kind"] == "under_filled"]
+    if under:
+        grades = sorted({w["grade"] for w in under if w["grade"]})
+        cards.append(
+            Card(
+                key="melting:under_filled", type="melting",
+                severity="warning" if len(under) >= rules.UNDERFILLED_WARN else "info",
+                title="Heats poured part-full",
+                message=f"{plural(len(under), 'heat')} would be filled below {rules.UNDERFILLED_PCT}% of the furnace's heat size, in {', '.join(grades) or 'one grade'}.",
+                numbers={"heats": len(under), "grades": grades, "days": sorted({w['day'] for w in under})[:10]},
+                entities={"grades": grades, "dates": sorted({w["day"] for w in under})[:10]},
+                action="Group orders of the same grade on the same days so each heat is full.",
+                why=(
+                    "One heat is one grade, so metal of different grades cannot share a heat. The last heat of a grade on a day "
+                    "is often part-full, which wastes melting energy.",
+                ),
+                impact=min(10.0, len(under) / 3),
+            )
+        )  # fmt: skip
+    return cards
+
+
 # --- 5. load balancing ----------------------------------------------------------------------------
 def load_balancing(candidates: Sequence[BalanceCandidate]) -> list[Card]:
     good = [c for c in candidates if c.from_util - c.to_util >= rules.BALANCE_MIN_GAP]

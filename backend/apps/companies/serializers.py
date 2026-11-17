@@ -101,6 +101,8 @@ class CompanySettingsSerializer(serializers.ModelSerializer):
             "flow_mode",
             "pour_same_shift",
             "melt_loss_default_pct",
+            "post_pour_days",
+            "max_lead_days",
         ]
 
     def validate_rejection_booked_at(self, value):

@@ -9,7 +9,8 @@ from rest_framework.exceptions import ValidationError
 
 from planning.model import type_of
 
-from .models import Plan, PlanAllocation, PlanLine, PlanLoad
+from . import pour_plans
+from .models import Plan, PlanAllocation, PlanHeat, PlanLine, PlanLoad
 
 DEPARTMENTS = {
     "all": "All departments",
@@ -150,14 +151,129 @@ def shift_or_day_plan(
         tables.append(Table("Work planned", WORK_COLUMNS, _work_rows(allocs, True), WORK_WIDTHS))
         title = f"Day plan: {dept_title}"
         loadf = {"slot__slot_date": day}
-    if not allocs:
+    if department in ("all", "melting") and (plan.summary or {}).get("melt") is not None:
+        heats = _heat_rows(plan, day, shift_id)
+        if heats:
+            tables.append(Table("Melting and pouring: heats", HEAT_COLUMNS, heats, HEAT_WIDTHS))
+    if not allocs and not any(t.title.startswith("Melting") for t in tables):
         tables = [
             Table("Nothing is planned", ["Note"], [["No work is planned for this selection."]], [1])
         ]
-    else:
+    elif allocs:
         tables.append(_load_table(plan, loadf, "Resource load"))
     stem = f"{'shift' if per_shift else 'day'}-plan-{day.isoformat()}-{department}"
     return Report(title, f"{fmt_date(day)} · {dept_title}", tables, stem)
+
+
+HEAT_COLUMNS = ["Heat", "Furnace", "Shift", "Grade", "Metal (kg)", "Fill", "Pours"]
+HEAT_WIDTHS = [2, 1.4, 1.6, 1.6, 1.6, 1.2, 4]
+
+
+def _heat_rows(plan: Plan, day: date, shift_id: int | None = None) -> list[list[str]]:
+    heats = (
+        PlanHeat.objects.filter(plan=plan, day=day).prefetch_related("pours").order_by("sequence")
+    )
+    if shift_id:
+        heats = heats.filter(slot__shift_id=shift_id)
+    rows = []
+    for h in heats:
+        pours = ", ".join(f"{p.part_number} x {p.moulds}" for p in h.pours.all())
+        note = f" ({'; '.join(h.warnings)})" if h.warnings else ""
+        rows.append(
+            [h.heat_no, h.furnace_code or "no furnace room", h.shift_name or "–", h.grade, _n(h.kg, 0), f"{h.fill_pct:.0f}%", pours + note]
+        )  # fmt: skip
+    return rows
+
+
+MOULD_COLUMNS = [
+    "Date",
+    "Shift",
+    "Machine",
+    "Part",
+    "Customer",
+    "Moulds",
+    "Castings",
+    "Minutes",
+    "Machine used",
+    "Due",
+]
+MOULD_WIDTHS = [1.6, 1.6, 1.6, 2.2, 1.6, 1.2, 1.4, 1.2, 1.6, 1.6]
+
+
+def mould_plan_table(plan: Plan, start: date, end: date) -> Table:
+    data = pour_plans.mould_plan(plan, start, end)
+    rows = []
+    for day in data["days"]:
+        for shift in day["shifts"]:
+            for m in shift["machines"]:
+                used = "–" if m["used_pct"] is None else f"{m['used_pct']:.0f}%"
+                for item in m["items"]:
+                    rows.append(
+                        [fmt_date(day["date"]), shift["shift"], m["code"], item["part_number"], item["customer_code"], _n(item["moulds"], 0), _n(item["castings"]), _n(item["minutes"], 0), used, fmt_date(item["due"])]
+                    )  # fmt: skip
+    note = ""
+    if data["warnings"]:
+        note = "Cannot meet the dispatch date: " + "; ".join(
+            f"{w['part_number']} ({w['customer_code']}) due {fmt_date(w['due'])}"
+            for w in data["warnings"][:12]
+        )
+    return Table(
+        "Mould plan",
+        MOULD_COLUMNS,
+        rows or [["No moulds are planned in this window."] + [""] * 9],
+        MOULD_WIDTHS,
+        note,
+    )
+
+
+MELT_COLUMNS = [
+    "Date",
+    "Heat",
+    "Furnace",
+    "Shift",
+    "Grade",
+    "Metal (kg)",
+    "Heat size (kg)",
+    "Fill",
+    "Parts poured",
+    "Warnings",
+]
+MELT_WIDTHS = [1.6, 1.8, 1.2, 1.4, 1.4, 1.4, 1.6, 1.0, 3.6, 3]
+
+
+def melt_plan_table(plan: Plan, start: date, end: date) -> Table:
+    data = pour_plans.melt_plan(plan, start, end)
+    rows = []
+    for day in data["days"]:
+        for h in day["heats"]:
+            pours = ", ".join(f"{p['part_number']} x {p['moulds']}" for p in h["pours"])
+            rows.append(
+                [fmt_date(day["date"]), h["heat_no"], h["furnace"] or "no room", h["shift"] or "–", h["grade"], _n(h["kg"], 0), _n(h["capacity_kg"], 0), f"{h['fill_pct']:.0f}%", pours, "; ".join(h["warnings"])]
+            )  # fmt: skip
+    if not data["enabled"]:
+        rows = [["The melt plan is switched off for this plan."] + [""] * 9]
+    return Table(
+        "Melt plan",
+        MELT_COLUMNS,
+        rows or [["No heats are planned in this window."] + [""] * 9],
+        MELT_WIDTHS,
+    )
+
+
+def planning_report(plan: Plan, start: date, end: date, which: str) -> Report:
+    """The mould plan, the melt plan, or both in one file, for a window of days."""
+    tables = []
+    if which in ("mould_plan", "planning_pack"):
+        tables.append(mould_plan_table(plan, start, end))
+    if which in ("melt_plan", "planning_pack"):
+        tables.append(melt_plan_table(plan, start, end))
+    title = {
+        "mould_plan": "Mould plan",
+        "melt_plan": "Melt plan",
+        "planning_pack": "Mould and melt plan",
+    }[which]
+    stem = f"{which.replace('_', '-')}-{start.isoformat()}-to-{end.isoformat()}"
+    return Report(title, f"{fmt_date(start)} to {fmt_date(end)}", tables, stem)
 
 
 def dispatch_vs_estimate(plan: Plan, month: str) -> Report:

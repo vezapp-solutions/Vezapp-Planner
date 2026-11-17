@@ -12,7 +12,7 @@ from apps.resources.models import Resource
 from planning.model import step_code
 
 # Keys of PartOperation.extra that belong to machine choice, not to the engine's own settings.
-MACHINE_KEYS = ("machine_types", "except", "time_by_type")
+MACHINE_KEYS = ("machine_types", "except", "time_by_type", "rate_by_machine")
 
 
 def machines_by_type(company) -> dict[int, list[int]]:
@@ -41,6 +41,14 @@ def allowed_ids(op, by_type: dict[int, list[int]]) -> list[int]:
 def times_by_type(op) -> dict[int, Decimal]:
     raw = (op.extra or {}).get("time_by_type") or {}
     return {int(k): Decimal(str(v)) for k, v in raw.items() if v not in (None, "")}
+
+
+def times_by_resource(op) -> dict[int, Decimal]:
+    """Minutes per mould on named machines, from the part's moulds per hour on each of them."""
+    raw = (op.extra or {}).get("rate_by_machine") or {}
+    return {
+        int(k): Decimal(60) / Decimal(str(v)) for k, v in raw.items() if v not in (None, "", 0, "0")
+    }
 
 
 def code_of(op) -> str:

@@ -23,32 +23,25 @@ Open **Masters** and work down the list, because each step uses the one before i
 
 Every create, change and delete is recorded under **Audit log**.
 
-## Monthly Scheduler (Planners and Admins edit; Viewers read)
-**Monthly Scheduler** shows one month of dispatch lines: customer, part, quantity, the plant's internal dispatch date, and (once shipped) the actual date and quantity. Use the arrows or the month box to change month, and the filters for customer, grade, status or part. The totals above the table follow the filters.
+## Planning moulds and melting from the month's orders
+This phase plans **moulding and melting** only: getting the castings made. Fettling, machining and the later operations stay in the route but are marked "Not planned (Phase 2)".
 
-- **Add line** adds a row at the top: choose the customer first, then a part (the list shows that customer's parts). Press Enter to save, Escape to cancel.
-- **Edit** on any row changes it in place. Entering an actual dispatch date marks the line Dispatched.
-- **Copy from the previous month** copies every line into this month on the same day of the month.
-- A red "late" tag means the internal date has passed and nothing is recorded as dispatched. A "check" tag means something is worth a look, for example the part is not linked to that customer.
+1. **Upload the month's orders** (Monthly Scheduler, Upload Excel). Download the template: one row per order with Part Number, Order Qty and Dispatch Date, and optionally Month, Customer, Status (Open or Closed), WIP Stock, FG Stock and Dispatched Qty. After the preview you see the parts that are not in the Part Master; the other rows still load. Press **Create part** beside a part to add it (name, grade, weights, cavities), and the file is checked again. A blank customer uses the part's default customer.
+2. **Review the parts.** An order whose part lacks master data shows **Cannot plan: missing master data** and says what to fill in: a moulding operation with a moulding machine and a rate, a pouring weight, a grade, and a furnace in the machine master.
+3. **Update stock.** On the Monthly Scheduler grid or the Plan screen's Orders tab, type **WIP**, **FG** and **Dispatched** beside each order and press Enter. **Balance** = order qty − (WIP + FG + dispatched). **History** shows who changed what and when. An order with a balance of 0 shows **Covered by stock** and is not planned.
+4. **Run planning** (Plan screen). Only Open orders are planned, only for the balance, earliest dispatch date first. A change to stock, quantity or status marks the plan **Stale**; press Run planning again.
+5. **Read the plans.** **Mould plan**: per day, shift and machine, the part, moulds, castings and how much of the machine is used, and the orders that cannot meet their date. **Melt plan**: per day and furnace, each heat with its grade, metal, fill and what it pours; one heat is one grade. Warnings: a heat no furnace can take, and under-filled heats. **Print and export** has Excel for the mould plan, the melt plan, or both.
 
-### Uploading from Excel or CSV
-1. Open **Upload Excel** and press **Download template**. Fill one row per line. The template's second sheet explains each column.
-2. Choose your file. You see a preview straight away: green rows are ready, "check" rows load but have a note, and error rows will not load.
-3. Choose what happens when a line is already in the schedule: leave it alone, or update it with the file's quantity.
-4. If there are errors, either fix the file and upload again, or tick **Skip the rows with errors** to load the rest. **Download problems (Excel)** gives you the list of problem rows with the reason for each.
-5. Press **Load**. The whole upload is saved together or not at all, and it appears under **Upload history**.
+Order badges: **Planned**, **Covered by stock**, **Cannot plan: missing master data**, **At risk** (it cannot meet its dispatch date, or its metal has no furnace room), **Closed**.
 
-## Plan (Planners and Admins calculate; everyone reads)
-Open **Plan** and press **Calculate the first plan**. The plan checks every Planned or In progress dispatch line against the real shifts, holidays, downtime and capacity of your resources, in priority order (earliest date first, then customer priority A, B, C).
+Company settings (Masters, Company calendar, Planning settings): **Days needed after pouring** (default 3 working days) and **Start no earlier than** (default 7 working days before the deadline).
 
-- **Lines**: each line with its internal date, **estimated dispatch date**, working days spare and status (On track: 2 or more days spare; Tight: 0 or 1; At risk: late; Not scheduled: does not fit the planning window). For lines that are not On track, "Held up by" names the operation whose work waited longest for capacity. Click a line for the detail: how much work it is (click any number for its formula), when each operation starts and finishes, and where the work runs.
-- **Gantt**: by resource (each block is a line's work in one shift; its width is its share of the shift) or by line (one bar per operation, with a marker at the internal date). Click a bar for the line.
-- **Load heatmap**: every resource against every day (or shift), coloured by how full it is, with the percentage always printed. A red dot means the lines due in that period need more minutes than the resource has. Click a cell to see which lines are behind it.
-- **Print and export**: shift plan and day plan per department, dispatch plan against estimated dates, and resource load, as PDF or Excel with the Vezapp logo.
+**For each real client, fill in:** the part's grade, casting weight, pouring weight per mould (castings plus runners and risers) and cavities; a moulding operation on the part with the allowed moulding lines and a rate (moulds per hour on the part, or on the line); each moulding line's rate, shifts and downtime; each furnace's heat size, heat minutes and heats per shift; the melt loss; shifts and holidays; a default customer for each part.
 
-A banner says when the plan is **out of date** (masters or the schedule changed, or it was calculated on an earlier day); press **Recalculate**. **Confirm plan** freezes a current plan as a baseline; after that use **New plan** to plan again.
+A sample file is in `docs/samples/monthly-orders-sample.xlsx` (it uses the demo foundry's parts).
 
-Home shows today's and tomorrow's work, the busiest resource of each of the next 14 working days, and the lines most at risk. How a lot moves between operations (pieces flow on, or the whole lot at a time) and whether pouring must be in the same shift as moulding are set in Masters, Company calendar, Planning settings.
+## Plan (Planners and Admins run planning; everyone reads)
+The Plan screen opens on the **Orders** tab. The tabs: Orders, Mould plan, Melt plan, Plan lines (one row per planned order with what holds it up), Gantt, Load heatmap and Print and export. A line's detail shows the numbers behind it: pieces to pour, moulds and the metal, each with its formula.
 
 ## What-if (Planners and Admins)
 Use **What-if** to try a change on a copy of the plan and see which lines move, before anything real changes.

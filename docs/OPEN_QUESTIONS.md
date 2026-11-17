@@ -24,3 +24,13 @@ Unresolved points. Each says what is blocked or assumed meanwhile.
 
 - **Instant pricing.** CASCULATE offers AI-based instant pricing for castings. A future Vezapp module could estimate cost per part from weight, grade, operation minutes and hourly rates.
 - **WhatsApp daily digest.** The insight digest (Phase 5) is designed so a WhatsApp channel can be added later. Not built.
+
+## Moulding and melting phase
+
+| # | Question | Assumed meanwhile |
+|---|---|---|
+| Q16 | Should a furnace shortfall slow the moulds (as the engine did before) instead of only warning? | Warn only (A109). The orders in the short heat are marked at risk. |
+| Q17 | Should the melt plan let metal carry over to the next day when a day is short, instead of listing the heats as having no furnace room? | No; the heat stays on its day with a warning. |
+| Q18 | Should core making be planned with moulding (cores limit the moulds)? | No; core is not planned in this phase (A101). |
+| Q19 | Is 70% the right limit for an under-filled heat, and should a part-filled last heat be topped up by moving moulds from the next day? | 70% (`MIN_HEAT_FILL_PCT`), no moving of moulds. |
+| Q20 | Do clients dispatch the same order in several lots on several dates? | The last dispatch date is kept and the quantity adds up in one field (A102). |

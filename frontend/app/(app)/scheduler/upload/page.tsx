@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { Panel } from "@/components/Panel";
+import { UnmatchedParts } from "@/components/scheduler/UnmatchedParts";
 import { EmptyState, ErrorState, FormErrorLine, LoadingState, PageHeader } from "@/components/States";
 import { ApiError, download, fieldErrors, upload } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
@@ -117,8 +118,8 @@ export default function UploadPage() {
   if (role === "viewer") {
     return (
       <>
-        <PageHeader title="Upload schedule" />
-        <EmptyState title="You do not have access to this screen">Only a Planner or Admin can upload a schedule.</EmptyState>
+        <PageHeader title="Upload monthly orders" />
+        <EmptyState title="You do not have access to this screen">Only a Planner or Admin can upload orders.</EmptyState>
       </>
     );
   }
@@ -128,7 +129,7 @@ export default function UploadPage() {
     setError(null);
     setDone(null);
     setPreview(null);
-    setSkipErrors(false);
+    setSkipErrors(true); // rows with errors are listed, and the rest load
     setFilter("all");
     try {
       setPreview(await upload<UploadPreview>("/uploads/preview", formOf(nextFile, nextMode)));
@@ -174,7 +175,7 @@ export default function UploadPage() {
   return (
     <>
       <p className="mb-2 text-sm"><Link href="/scheduler" className="inline-flex min-h-6 items-center text-link underline-offset-2 hover:underline">← Monthly Scheduler</Link></p>
-      <PageHeader title="Upload schedule" subtitle="Load many dispatch lines from Excel or CSV. You see a preview first and nothing is saved until you confirm." />
+      <PageHeader title="Upload monthly orders" subtitle="Load a month's orders from Excel or CSV: part, order quantity and dispatch date, with WIP, FG and dispatched stock if you have them. You see a preview first and nothing is saved until you confirm." />
 
       <div className="space-y-6">
         <Panel title="1. Choose a file" actions={
@@ -192,16 +193,16 @@ export default function UploadPage() {
             onChange={(e) => choose(e.target.files?.[0] ?? null)}
             disabled={busy !== null}
           />
-          <p className="mt-1 text-xs text-ink-soft">Dates can be DD-MM-YYYY, DD/MM/YYYY or real Excel dates.</p>
+          <p className="mt-1 text-xs text-ink-soft">Dates can be DD-MM-YYYY, DD/MM/YYYY or real Excel dates. Only Open orders are planned; Closed orders stay on the list as history.</p>
           <fieldset className="mt-4">
-            <legend className="mb-1 text-sm font-medium">If a line is already in the schedule (same customer, part and date)</legend>
+            <legend className="mb-1 text-sm font-medium">If an order is already in the schedule (same customer, part and date)</legend>
             <label className="flex min-h-9 items-center gap-2 text-sm">
               <input type="radio" name="mode" className="accent-[var(--action)]" checked={mode === "insert"} onChange={() => changeMode("insert")} />
-              Leave it alone and add only the new lines
+              Leave it alone and add only the new orders
             </label>
             <label className="flex min-h-9 items-center gap-2 text-sm">
               <input type="radio" name="mode" className="accent-[var(--action)]" checked={mode === "upsert"} onChange={() => changeMode("upsert")} />
-              Update it with the file&apos;s quantity (blank cells keep what is already recorded)
+              Update it from the file, including WIP, FG and dispatched stock (blank cells keep what is already recorded)
             </label>
           </fieldset>
         </Panel>
@@ -237,6 +238,8 @@ export default function UploadPage() {
                 {s.error > 0 && <>. <strong>{formatNumber(s.error)}</strong> rows with errors will not be loaded</>}.
               </p>
 
+              <UnmatchedParts parts={preview.unmatched_parts ?? []} onCreated={() => file && void run(file, mode)} />
+
               <div role="group" aria-label="Show rows" className="flex flex-wrap gap-1">
                 {([["all", `All (${s.total})`], ["error", `Errors (${s.error})`], ["warning", `To check (${s.warning})`]] as [Filter, string][]).map(([value, text]) => (
                   <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)} className={`btn !min-h-8 !px-3 ${filter === value ? "btn-primary" : "btn-quiet"}`}>
@@ -246,10 +249,10 @@ export default function UploadPage() {
               </div>
 
               <div className="max-h-[32rem] overflow-auto rounded-md border border-line">
-                <table className="w-full min-w-[56rem] text-left text-sm">
+                <table className="w-full min-w-[72rem] text-left text-sm">
                   <thead className="sticky top-0 border-b border-line bg-sunken text-ink-soft">
                     <tr>
-                      {["Row", "Result", "What happens", "Customer", "Part", "Qty", "Internal date", "Problem"].map((h) => (
+                      {["Row", "Result", "What happens", "Part", "Customer", "Order qty", "Dispatch date", "Status", "WIP", "FG", "Dispatched", "Problem"].map((h) => (
                         <th key={h} scope="col" className="px-3 py-2 font-medium">{h}</th>
                       ))}
                     </tr>
@@ -260,10 +263,14 @@ export default function UploadPage() {
                         <td className="px-3 py-1.5 font-mono">{r.row}</td>
                         <td className="px-3 py-1.5"><span className={`rounded-sm px-1.5 py-0.5 text-xs ${STATUS_STYLE[r.status]}`}>{STATUS_LABEL[r.status]}</span></td>
                         <td className="px-3 py-1.5">{ACTION_LABEL[r.action]}</td>
-                        <td className="px-3 py-1.5">{r.raw.customer_code || r.raw.customer_name || "–"}</td>
                         <td className="px-3 py-1.5">{r.raw.part_number || "–"}</td>
+                        <td className="px-3 py-1.5">{r.raw.customer_code || r.raw.customer_name || <span className="text-ink-soft">part&apos;s default</span>}</td>
                         <td className="px-3 py-1.5 font-mono">{r.raw.dispatch_qty || "–"}</td>
                         <td className="px-3 py-1.5 font-mono">{r.raw.internal_date || "–"}</td>
+                        <td className="px-3 py-1.5">{r.raw.status || "–"}</td>
+                        <td className="px-3 py-1.5 font-mono">{r.raw.wip_qty || "–"}</td>
+                        <td className="px-3 py-1.5 font-mono">{r.raw.fg_qty || "–"}</td>
+                        <td className="px-3 py-1.5 font-mono">{r.raw.actual_qty || "–"}</td>
                         <td className="px-3 py-1.5">
                           {r.messages.length === 0 ? <span className="text-ink-soft">–</span> : (
                             <ul className="space-y-0.5">
@@ -276,7 +283,7 @@ export default function UploadPage() {
                       </tr>
                     ))}
                     {shown.length === 0 && (
-                      <tr><td colSpan={8} className="px-3 py-4 text-center text-ink-soft">No rows in this view.</td></tr>
+                      <tr><td colSpan={12} className="px-3 py-4 text-center text-ink-soft">No rows in this view.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -289,7 +296,7 @@ export default function UploadPage() {
                 {s.error > 0 && (
                   <label className="flex min-h-10 items-center gap-2 text-sm font-medium">
                     <input type="checkbox" className="size-4 accent-[var(--action)]" checked={skipErrors} onChange={(e) => setSkipErrors(e.target.checked)} />
-                    Skip the {formatNumber(s.error)} rows with errors and load the rest
+                    Load the rest and skip the {formatNumber(s.error)} rows with errors
                   </label>
                 )}
                 <span className="ml-auto flex flex-wrap items-center gap-2">
@@ -299,7 +306,7 @@ export default function UploadPage() {
                     </button>
                   )}
                   <button type="button" className="btn btn-primary" onClick={commit} disabled={blocked}>
-                    {busy === "commit" ? "Loading…" : `Load ${formatNumber(toSave)} line${toSave === 1 ? "" : "s"} into the schedule`}
+                    {busy === "commit" ? "Loading…" : `Load ${formatNumber(toSave)} order${toSave === 1 ? "" : "s"} into the schedule`}
                   </button>
                 </span>
               </div>

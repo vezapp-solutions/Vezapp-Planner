@@ -38,6 +38,16 @@ class Timeline:
         count = sum(1 for d in self.days if low < d <= high)
         return count if b > a else -count
 
+    def shift_working_days(self, day: date, n: int) -> date:
+        """The working day n working days after (n > 0) or before (n < 0) `day`, clamped to the timeline.
+
+        A day that is not a working day counts as the last working day before it."""
+        if not self.days:
+            return day
+        i = bisect_right(self.days, day) - 1
+        i = max(0, i)
+        return self.days[min(max(i + n, 0), len(self.days) - 1)]
+
     def slot_containing_or_before(self, moment: datetime) -> int:
         """Last slot that starts at or before the moment (0 if none)."""
         lo = 0

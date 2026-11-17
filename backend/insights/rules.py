@@ -24,6 +24,9 @@ UNEVEN_CV = 0.35  # standard deviation over mean of daily furnace utilisation
 UNEVEN_LOW = 0.4
 UNEVEN_MIN_DAYS = 4
 MELT_DAYS_LISTED = 28
+SHORTFALL_DAYS_CRITICAL = 3  # furnace short on this many days is critical
+UNDERFILLED_WARN = 3  # this many part-filled heats is a warning, fewer is information
+UNDERFILLED_PCT = 70  # shown in the card text; the planner's own limit is MIN_HEAT_FILL_PCT
 
 # Load balancing
 MAX_BALANCE_CARDS = 3

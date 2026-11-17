@@ -21,6 +21,8 @@ function Form({ settings, ops, canEdit }: { settings: CompanySettings; ops: Oper
       hint: "Operations up to and including this one are planned for the extra pieces that rejection will scrap.",
     },
     { key: "melt_loss_default_pct", label: "Melt loss when a part has none", type: "number", unit: "%", step: "0.01", min: 0 },
+    { key: "post_pour_days", label: "Days needed after pouring", type: "number", unit: "working days", step: "1", min: 0, hint: "Shakeout, fettling, machining and packing are not planned yet. Pouring must finish this many working days before the dispatch date." },
+    { key: "max_lead_days", label: "Start no earlier than", type: "number", unit: "working days before", step: "1", min: 0, hint: "An order is not moulded earlier than this before its deadline, so June orders are not made in November. Blank: as early as capacity allows." },
     {
       key: "flow_mode",
       label: "How a lot moves between operations",

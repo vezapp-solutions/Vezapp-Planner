@@ -36,7 +36,12 @@ def build_cards(company, plan: Plan | None, today: date) -> list[Card]:
         cards += plan_cards.at_risk(lines)
         cards += plan_cards.bottleneck_forecast(collect.bottleneck_days(plan, days))
         cards += plan_cards.capacity_gap(loads, shift_minutes)
-        cards += plan_cards.melting(collect.melt_rows(plan), collect.furnace_days(rows))
+        heats = collect.heat_rows(plan)
+        if heats:  # melting was planned grade by grade: read the heats
+            cards += plan_cards.melting(heats, collect.heat_furnace_days(plan))
+            cards += plan_cards.melt_warning_cards(collect.melt_warnings(plan))
+        else:
+            cards += plan_cards.melting(collect.melt_rows(plan), collect.furnace_days(rows))
         cards += plan_cards.load_balancing(collect.balance_candidates(plan, rows, days))
         cards += plan_cards.month_forecast(lines, today)
         cards += plan_cards.concentration(lines, collect.quantity_history(company), today)

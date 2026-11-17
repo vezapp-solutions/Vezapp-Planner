@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from apps.masters.machines import allowed_ids, code_of, machines_by_type, name_of
 from apps.masters.models import OperationType, Part, PartOperation
 from apps.masters.route import describe_route
-from apps.plans.models import Plan, PlanAllocation, PlanOperation
+from apps.plans.models import Plan, PlanAllocation, PlanHeat, PlanOperation
 from apps.resources.models import Resource, Status
 from apps.resources.serializers import resource_issues
 from apps.scheduler.models import LineStatus, ScheduleLine
@@ -94,6 +94,32 @@ def capacity_inputs(rows: list[tuple]) -> tuple[list[LoadRow], dict[int, float]]
 
 def furnace_days(rows: list[tuple]) -> list[FurnaceDay]:
     return [FurnaceDay(r[1], r[4], r[5], r[6]) for r in rows if r[3] == "furnace"]
+
+
+def heat_rows(plan: Plan) -> list[MeltRow]:
+    """The metal of each planned heat, by day and grade (empty when melting was planned by the engine)."""
+    return [
+        MeltRow(day, grade, kg)
+        for day, grade, kg in PlanHeat.objects.filter(plan=plan).values_list("day", "grade", "kg")
+    ]
+
+
+def heat_furnace_days(plan: Plan) -> list[FurnaceDay]:
+    """Each furnace's heats against the heats it could run, per day, from the stored melt plan."""
+    melt = (plan.summary or {}).get("melt") or {}
+    return [
+        FurnaceDay(
+            d["furnace"],
+            date.fromisoformat(d["day"]),
+            float(d["heats"]),
+            float(d["capacity_heats"]),
+        )
+        for d in melt.get("days", [])
+    ]
+
+
+def melt_warnings(plan: Plan) -> list[dict]:
+    return list(((plan.summary or {}).get("melt") or {}).get("warnings", []))
 
 
 def melt_rows(plan: Plan) -> list[MeltRow]:

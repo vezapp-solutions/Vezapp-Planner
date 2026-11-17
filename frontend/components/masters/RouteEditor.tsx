@@ -7,6 +7,7 @@ import { FormError } from "@/components/forms";
 import { MachineChoice } from "@/components/masters/MachineChoice";
 import { ApiError, post, put } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
+import { usePlanningConfig } from "@/lib/planning-config";
 import { nextStep, opTitle } from "@/lib/machining";
 import type { Part, Resource, ResourceType, Route, RouteOp, Traced } from "@/lib/types";
 import { Select } from "@/components/ui/Select";
@@ -166,6 +167,17 @@ function OpCard({
 
   const suggestion = trace(op, "suggested_moulds_per_heat");
   const mpp = trace(op, "minutes_per_piece");
+  const { isPlanned } = usePlanningConfig();
+  const notPlanned = !isPlanned(op.type_code);
+  // The part's moulding rate, as moulds per hour; stored as minutes per mould.
+  const mouldsPerHour = op.time_value ? Math.round((60 / op.time_value) * 100) / 100 : null;
+  const moulders = resources.filter((r) => r.kind === "moulding_line" && r.status !== "inactive" && (op.resource_ids.length === 0 || op.resource_ids.includes(r.id)));
+  const setRate = (machine: number, v: number | null) => {
+    const next = { ...op.rate_by_machine };
+    if (v == null || v <= 0) delete next[String(machine)];
+    else next[String(machine)] = v;
+    set({ rate_by_machine: next });
+  };
 
   return (
     <li className={`panel ${off ? "opacity-75" : ""}`}>
@@ -178,6 +190,9 @@ function OpCard({
           <span className="font-display text-lg font-semibold">{title}</span>
           <span className="truncate text-sm text-ink-soft">{off ? "Not used for this part" : summary(op) || "Needs a time"}</span>
         </button>
+        {notPlanned && !off && (
+          <span className="rounded-sm bg-sunken px-1.5 py-0.5 text-xs text-ink-soft" title="This operation stays in the route but is not planned in this phase.">Not planned (Phase 2)</span>
+        )}
         {blocked && !off && <span className="rounded-sm bg-danger-wash px-1.5 py-0.5 font-mono text-xs text-danger">fix</span>}
         {!off && op.kind === "post" && !op.capacity_modelled && !op.outsourced && (
           <span className="rounded-sm bg-sunken px-1.5 py-0.5 font-mono text-xs text-ink-soft" title="No work centre is set, so plans do not check capacity for this operation.">capacity not modelled</span>
@@ -209,7 +224,28 @@ function OpCard({
 
             {op.kind === "moulding" && (
               <>
-                <NumField id={`${id}-time`} label="Time per mould" unit="min" value={op.time_value} onChange={(v) => set({ time_value: v })} disabled={!canEdit} error={err("time_value")} placeholder={trace(op, "minutes_per_mould")?.value?.toString()} hint="Blank uses 60 ÷ the line's moulds per hour." />
+                <NumField
+                  id={`${id}-rate`}
+                  label="Moulds per hour (this part)"
+                  unit="per h"
+                  value={mouldsPerHour}
+                  onChange={(v) => set({ time_value: v && v > 0 ? Math.round((60 / v) * 10000) / 10000 : null })}
+                  disabled={!canEdit}
+                  error={err("time_value")}
+                  placeholder={trace(op, "minutes_per_mould")?.value ? String(Math.round((60 / Number(trace(op, "minutes_per_mould")?.value)) * 100) / 100) : undefined}
+                  hint={op.time_value ? `${op.time_value} minutes per mould. Blank uses the moulding line's own rate.` : "Blank uses the moulding line's own rate."}
+                />
+                {moulders.length > 0 && (
+                  <div className="sm:col-span-2">
+                    <p className="mb-1 text-sm font-medium">Moulds per hour on a particular line</p>
+                    <p className="mb-2 text-xs text-ink-soft">Only if this part runs faster or slower on a line than the figure above. Blank means the figure above.</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {moulders.map((m) => (
+                        <NumField key={m.id} id={`${id}-rate-${m.id}`} label={m.code} unit="per h" value={op.rate_by_machine?.[String(m.id)] ?? null} onChange={(v) => setRate(m.id, v)} disabled={!canEdit} placeholder={m.rate_per_hour ?? undefined} />
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <NumField id={`${id}-cav`} label="Pieces per mould (cavities)" integer step="1" value={op.extra.cavities_per_mould} onChange={(v) => setExtra("cavities_per_mould", v)} disabled={!canEdit} error={err("extra.cavities_per_mould")} placeholder={String(part.cavities_per_mould)} hint={`Blank takes ${part.cavities_per_mould} from the Part Master.`} />
                 <ResourcePicker id={`${id}-res`} label="Allowed moulding lines" options={mine} chosen={op.resource_ids} onChange={(ids) => set({ resource_ids: ids })} disabled={!canEdit} />
               </>

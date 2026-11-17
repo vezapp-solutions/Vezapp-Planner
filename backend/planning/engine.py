@@ -1,6 +1,7 @@
 """run_plan: the single entry point. Pure function of a PlanInput."""
 
 import time
+from dataclasses import replace
 from decimal import Decimal
 
 from .backward import backward_pass
@@ -41,6 +42,7 @@ def run_plan(inp: PlanInput) -> PlanResult:
         return PlanResult([], results, [], {}, [], None, {"lines": len(results), "runtime_ms": 0})
 
     scheduler = Scheduler(timeline, ledger, inp.settings, res)
+    base_start = scheduler.plan_start
     ordered = sorted(
         inp.lines,
         key=lambda ln: (ln.internal_date, PRIORITY_RANK.get(ln.priority, 1), ln.entry_order, ln.id),
@@ -65,10 +67,20 @@ def run_plan(inp: PlanInput) -> PlanResult:
             )
             continue
         req = explode_line(line, part, inp.settings, res)
-        windows, required = backward_pass(line, part, req, timeline, res)
+        # What is planned must be done `post_pour_days` working days before dispatch, and may not
+        # start more than `max_lead_days` working days before that deadline.
+        post = max(0, inp.settings.post_pour_days)
+        deadline_day = timeline.shift_working_days(line.internal_date, -post) if post else None
+        due_line = replace(line, internal_date=deadline_day) if deadline_day else line
+        windows, required = backward_pass(due_line, part, req, timeline, res)
         for key, minutes in required.items():
             required_total[key] = required_total.get(key, ZERO) + minutes
 
+        lead = inp.settings.max_lead_days
+        if lead is not None:
+            release_day = timeline.shift_working_days(due_line.internal_date, -lead)
+            first_slot = timeline.slots[timeline.by_day[release_day][0]]
+            scheduler.plan_start = max(base_start, first_slot.start)
         sched = scheduler.schedule_line(line, part, req)
         for op in sched.ops:
             if op.code in windows:
@@ -94,6 +106,8 @@ def run_plan(inp: PlanInput) -> PlanResult:
         finishes = [op.finish_at for op in sched.ops if op.finish_at]
         finish = max(finishes) if finishes else None
         est = day_of(timeline, finish) if finish else None
+        if est and post:
+            est = timeline.shift_working_days(est, post)
         slack = timeline.working_days_between(est, line.internal_date) if est else None
         status = classify(slack) if slack is not None else "unscheduled"
         holding, text = (None, "")

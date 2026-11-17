@@ -527,7 +527,7 @@ class Scheduler:
                         )
                     step = self.allocate(line.id, op, req.units.get(op.code, ZERO), release)
                     result.capacity_modelled = bool(result.resource_ids)
-                    if op.setup_minutes or op.time_by_type:
+                    if op.setup_minutes or op.time_by_type or op.time_by_resource:
                         result.minutes = step.minutes  # the machines' own times and setups
                 if op.kind == "melting":
                     result.units = Decimal(req.moulds)

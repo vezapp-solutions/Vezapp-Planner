@@ -65,6 +65,9 @@ class OpSpec:
     time_by_type: Mapping[int, Decimal] = field(
         default_factory=dict
     )  # minutes per unit by resource type
+    time_by_resource: Mapping[int, Decimal] = field(
+        default_factory=dict
+    )  # minutes per unit on one named machine (a part's own rate on that moulding line)
 
 
 STEP_SEPARATOR = "~"
@@ -92,6 +95,9 @@ class PartSpec:
     rejection_pct: Decimal
     ops: tuple[OpSpec, ...]  # enabled operations only, in sequence order
     rejection_seq: int = 50  # operations up to this sequence use the pieces-to-pour quantity
+    melt_loss_pct: Decimal | None = (
+        None  # entered on the part's melting operation; None: company default
+    )
 
 
 @dataclass(frozen=True)
@@ -113,6 +119,12 @@ class PlanSettings:
     pour_same_shift: bool = True
     default_melt_loss_pct: Decimal = Decimal(0)
     max_window_days: int = 400
+    # Working days the plan keeps between the last operation it plans and the dispatch date
+    # (shakeout, fettling, packing...). The deadline moves earlier and the estimate later by this much.
+    post_pour_days: int = 0
+    # A line may start no earlier than this many working days before its deadline (None: as early
+    # as capacity allows, the original behaviour).
+    max_lead_days: int | None = None
 
 
 @dataclass(frozen=True)

@@ -145,6 +145,9 @@ def _row(optype, saved, part, default_melt_loss, by_type=None, all_resources=Non
             "step": saved.step, "label": saved.label, "setup_minutes": _number(saved.setup_minutes),
             "machine_types": type_ids(saved), "except_ids": except_ids(saved),
             "time_by_type": {str(k): float(v) for k, v in times_by_type(saved).items()},
+            "rate_by_machine": {
+                str(k): float(v) for k, v in ((saved.extra or {}).get("rate_by_machine") or {}).items()
+            },
         }  # fmt: skip
     else:
         chosen, effective = [], []
@@ -156,7 +159,7 @@ def _row(optype, saved, part, default_melt_loss, by_type=None, all_resources=Non
             "capacity_bucket": optype.default_bucket if optype.kind == "post" else "",
             "lag_hours": 0, "outsourced": False, "lead_days": None, "extra": {},
             "step": 0, "label": "", "setup_minutes": 0, "machine_types": [], "except_ids": [],
-            "time_by_type": {},
+            "time_by_type": {}, "rate_by_machine": {},
         }  # fmt: skip
     row.update(
         op_type=optype.pk, code=step_code(optype.code, row["step"]), type_code=optype.code,
@@ -264,6 +267,12 @@ class RouteItemSerializer(serializers.Serializer):
         required=False,
         default=dict,
     )
+    # Moulds per hour this part makes on a named moulding line (overrides the line's own rate).
+    rate_by_machine = serializers.DictField(
+        child=serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal("0.01")),
+        required=False,
+        default=dict,
+    )
 
     def validate_extra(self, value):
         cleaned = {}
@@ -355,7 +364,27 @@ class RouteItemSerializer(serializers.Serializer):
                     "time_by_type": f"Give a time for {', '.join(uncovered)}, or a default time for the operation."
                 }
             )
+        rates = dict(attrs.get("rate_by_machine", {}))
+        if rates:
+            lines = {
+                str(r.pk)
+                for r in Resource.objects.for_company(part.company).filter(
+                    resource_type__kind=Kind.MOULDING_LINE
+                )
+            }
+            if kind != "moulding":
+                raise serializers.ValidationError(
+                    {"rate_by_machine": "A rate per machine belongs to the moulding operation."}
+                )
+            if any(str(k) not in lines for k in rates):
+                raise serializers.ValidationError(
+                    {
+                        "rate_by_machine": "A rate was given for a machine that is not a moulding line."
+                    }
+                )
         extra_keys = dict(attrs.get("extra", {}))
+        if rates:
+            extra_keys["rate_by_machine"] = {str(k): float(v) for k, v in rates.items()}
         if types:
             extra_keys["machine_types"] = sorted(t.pk for t in types)
         if excluded:

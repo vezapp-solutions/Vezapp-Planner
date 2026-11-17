@@ -99,7 +99,8 @@ def test_a_clean_row_is_ok_and_normalised():
     assert result.data == {
         "customer_id": 1, "part_id": 10, "dispatch_qty": 100,
         "internal_dispatch_date": date(2026, 11, 21), "actual_dispatch_date": None,
-        "actual_dispatched_qty": None, "remarks": "",
+        "actual_dispatched_qty": None, "wip_qty": None, "fg_qty": None, "status": None,
+        "remarks": "",
     }  # fmt: skip
 
 
@@ -137,8 +138,8 @@ def test_actual_date_rules():
     assert check(row(actual_date="10-11-2026", internal_date="21-11-2026")).status == "ok"
     future = check(row(actual_date="11-11-2026", internal_date="21-11-2026"))
     assert future.status == "error" and "future" in future.messages[0].text
-    orphan = check(row(actual_qty=40, internal_date="21-11-2026"))
-    assert orphan.status == "error" and orphan.messages[0].field == "actual_qty"
+    # a dispatched quantity is cumulative stock and needs no date
+    assert check(row(actual_qty=40, internal_date="21-11-2026")).status == "ok"
 
 
 def test_several_problems_are_all_reported_on_one_row():
@@ -194,9 +195,14 @@ def test_csv_with_semicolons_and_synonym_headers():
     }  # fmt: skip
 
 
-def test_a_file_with_no_customer_column_is_refused():
-    with pytest.raises(FileProblem, match="Customer Code or Customer Name"):
-        read_table("x.csv", b"Part Number,Dispatch Qty,Internal Dispatch Date\nP,1,01-11-2026\n")
+def test_a_file_without_an_order_quantity_is_refused():
+    with pytest.raises(FileProblem, match="Order Qty"):
+        read_table("x.csv", b"Part Number,Dispatch Date\nP,01-11-2026\n")
+
+
+def test_the_customer_column_is_optional():
+    rows = read_table("x.csv", b"Part Number,Order Qty,Dispatch Date\nP,1,01-11-2026\n")
+    assert len(rows) == 1
 
 
 @pytest.mark.parametrize(

@@ -20,6 +20,7 @@ from .importer import (
     parse_date,
     read_table,
     summarize,
+    unmatched_parts,
     validate_rows,
 )
 from .models import LineStatus, ScheduleLine, UploadBatch
@@ -37,9 +38,21 @@ def build_lookups(company, rows: list[RawRow]) -> Lookups:
         lookups.customers_by_name.setdefault(_key(c.name), info)
     for p in Part.objects.for_company(company):
         lookups.parts_by_number[_key(p.part_number)] = _info_part(p)
-    lookups.links = set(
-        PartCustomer.objects.for_company(company).values_list("part_id", "customer_id")
+    links = list(
+        PartCustomer.objects.for_company(company).values_list(
+            "part_id", "customer_id", "is_default"
+        )
     )
+    lookups.links = {(part_id, customer_id) for part_id, customer_id, _ in links}
+    by_id = {c.id: _info_customer(c) for c in Customer.objects.for_company(company)}
+    per_part: dict[int, list[int]] = {}
+    for part_id, customer_id, is_default in links:
+        per_part.setdefault(part_id, []).append(customer_id)
+        if is_default and customer_id in by_id:
+            lookups.default_customers[part_id] = by_id[customer_id]
+    for part_id, customers in per_part.items():  # a part with one customer needs no default
+        if part_id not in lookups.default_customers and len(customers) == 1:
+            lookups.default_customers[part_id] = by_id[customers[0]]
 
     dates = []
     for row in rows:
@@ -62,6 +75,8 @@ def build_lookups(company, rows: list[RawRow]) -> Lookups:
                     line.actual_dispatched_qty,
                     line.remarks,
                     line.status,
+                    line.wip_qty,
+                    line.fg_qty,
                 )
             )
     return lookups
@@ -92,6 +107,7 @@ def preview(company, filename: str, content: bytes, mode: str) -> dict:
         "file_name": filename,
         "mode": mode,
         "summary": summarize(results),
+        "unmatched_parts": unmatched_parts(results),
         "rows": [r.as_dict() for r in results],
     }
 
@@ -129,9 +145,19 @@ def commit(company, user, filename: str, content: bytes, mode: str, skip_errors:
     for result in results:
         data = result.data
         if result.action == "insert":
-            line = ScheduleLine(company=company, upload_batch=batch, **data)
-            line.status = (
-                LineStatus.DISPATCHED if data["actual_dispatch_date"] else LineStatus.PLANNED
+            fields = {k: v for k, v in data.items() if k not in ("status", "wip_qty", "fg_qty")}
+            line = ScheduleLine(
+                company=company,
+                upload_batch=batch,
+                wip_qty=data["wip_qty"] or 0,
+                fg_qty=data["fg_qty"] or 0,
+                **fields,
+            )
+            line.status = data["status"] or _status_after_dispatch(
+                LineStatus.PLANNED,
+                data["actual_dispatch_date"],
+                data["actual_dispatched_qty"],
+                line,
             )
             line.save()
         elif result.action == "update":
@@ -140,9 +166,18 @@ def commit(company, user, filename: str, content: bytes, mode: str, skip_errors:
             # A blank optional cell keeps what is already recorded; it never wipes it.
             if data["actual_dispatch_date"]:
                 line.actual_dispatch_date = data["actual_dispatch_date"]
-                line.status = LineStatus.DISPATCHED
             if data["actual_dispatched_qty"] is not None:
                 line.actual_dispatched_qty = data["actual_dispatched_qty"]
+            if data["wip_qty"] is not None:
+                line.wip_qty = data["wip_qty"]
+            if data["fg_qty"] is not None:
+                line.fg_qty = data["fg_qty"]
+            if data["status"]:
+                line.status = data["status"]
+            elif data["actual_dispatch_date"]:
+                line.status = _status_after_dispatch(
+                    line.status, line.actual_dispatch_date, line.actual_dispatched_qty, line
+                )
             if data["remarks"]:
                 line.remarks = data["remarks"]
             line.upload_batch = batch
@@ -154,6 +189,15 @@ def commit(company, user, filename: str, content: bytes, mode: str, skip_errors:
 
         refresh_quietly(company, trigger="actuals")
     return batch
+
+
+def _status_after_dispatch(current: str, actual_date, actual_qty, line) -> str:
+    """Dispatched once the whole order has gone; a partial dispatch leaves it open (in progress)."""
+    if not actual_date:
+        return current
+    if actual_qty is None or actual_qty >= line.dispatch_qty:
+        return LineStatus.DISPATCHED
+    return LineStatus.IN_PROGRESS
 
 
 def copy_month(company, from_month: date, to_month: date) -> dict:

@@ -549,3 +549,23 @@ def test_digest_when_nothing_needs_attention():
 def test_cards_serialise_to_plain_json():
     out = card("a", "warning", 2.456, numbers={"n": 1}, why=("because",)).as_dict()
     assert out["why"] == ["because"] and out["impact"] == 2.46 and out["rank"] == 172.8
+
+
+def test_melt_warning_cards_name_the_shortfall_and_the_part_filled_heats():
+    from insights.plan_cards import melt_warning_cards
+
+    short = [
+        {"day": f"2026-11-0{d}", "kind": "shortfall", "grade": "GG25", "text": "x"}
+        for d in (2, 3, 4)
+    ]
+    under = [{"day": "2026-11-05", "kind": "under_filled", "grade": "SG500", "text": "y"}]
+    cards = {c.key: c for c in melt_warning_cards([*short, *under])}
+    assert cards["melting:shortfall"].severity == "critical"  # three days
+    assert cards["melting:shortfall"].numbers["heats"] == 3
+    assert (
+        cards["melting:under_filled"].severity == "info"
+        and "SG500" in cards["melting:under_filled"].message
+    )
+    assert melt_warning_cards([]) == []
+    one = melt_warning_cards(short[:1])
+    assert one[0].severity == "warning"

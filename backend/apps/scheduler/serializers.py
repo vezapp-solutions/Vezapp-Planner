@@ -5,6 +5,7 @@ from apps.core.fields import CompanyPKField
 from apps.masters.models import Customer, Part, PartCustomer
 
 from .models import LineStatus, ScheduleLine, UploadBatch
+from .state import order_states
 
 
 class ScheduleLineSerializer(serializers.ModelSerializer):
@@ -19,14 +20,20 @@ class ScheduleLineSerializer(serializers.ModelSerializer):
     tonnes = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
     warnings = serializers.SerializerMethodField()
+    balance = serializers.IntegerField(read_only=True)
+    is_open = serializers.BooleanField(read_only=True)
+    plan_state = serializers.SerializerMethodField()
+    plan_reasons = serializers.SerializerMethodField()
+    est_dispatch_date = serializers.SerializerMethodField()
 
     class Meta:
         model = ScheduleLine
         fields = [
             "id", "customer", "customer_code", "customer_name", "part", "part_number", "part_name",
             "grade_name", "dispatch_qty", "internal_dispatch_date", "actual_dispatch_date",
-            "actual_dispatched_qty", "remarks", "status", "month", "tonnes", "value", "warnings",
-            "upload_batch",
+            "actual_dispatched_qty", "wip_qty", "fg_qty", "balance", "is_open", "plan_state",
+            "plan_reasons", "est_dispatch_date", "remarks", "status", "month", "tonnes", "value",
+            "warnings", "upload_batch",
         ]  # fmt: skip
         read_only_fields = ["id", "upload_batch"]
 
@@ -39,6 +46,26 @@ class ScheduleLineSerializer(serializers.ModelSerializer):
             )
             self.context["_links"] = cache
         return cache
+
+    def _states(self, line):
+        """Order states are worked out once for the whole list being serialised."""
+        cache = self.context.setdefault("_states", {})
+        if line.pk not in cache:
+            siblings = getattr(self.parent, "instance", None) if self.parent is not None else None
+            batch = list(siblings) if isinstance(siblings, (list, tuple)) else [line]
+            company = self.context.get("company") or line.company
+            cache.update(order_states(company, batch))
+            cache.setdefault(line.pk, order_states(company, [line])[line.pk])
+        return cache[line.pk]
+
+    def get_plan_state(self, line):
+        return self._states(line).state
+
+    def get_plan_reasons(self, line):
+        return self._states(line).reasons
+
+    def get_est_dispatch_date(self, line):
+        return self._states(line).est_dispatch
 
     def get_tonnes(self, line):
         return round(float(line.part.casting_weight_kg) * line.dispatch_qty / 1000, 3)
@@ -70,16 +97,13 @@ class ScheduleLineSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"actual_dispatch_date": "The actual dispatch date cannot be in the future."}
             )
-        if actual_qty is not None and not actual_date:
-            raise serializers.ValidationError(
-                {"actual_dispatched_qty": "Give the actual dispatch date as well."}
-            )
-        if actual_qty is not None and actual_qty < 1:
-            raise serializers.ValidationError({"actual_dispatched_qty": "Must be at least 1."})
-        # Entering an actual date means the line has shipped; clearing it undoes that.
+        # Entering an actual date means the order has shipped, unless only part of it has gone;
+        # clearing it undoes that. A dispatched quantity can be kept without a date (cumulative).
         if "actual_dispatch_date" in attrs and "status" not in attrs:
+            qty = get("dispatch_qty")
+            whole = actual_qty is None or (qty is not None and actual_qty >= qty)
             if actual_date and status in (LineStatus.PLANNED, LineStatus.IN_PROGRESS):
-                attrs["status"] = LineStatus.DISPATCHED
+                attrs["status"] = LineStatus.DISPATCHED if whole else LineStatus.IN_PROGRESS
             elif not actual_date and status == LineStatus.DISPATCHED:
                 attrs["status"] = LineStatus.PLANNED
         elif status == LineStatus.DISPATCHED and not actual_date:

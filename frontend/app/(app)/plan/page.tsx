@@ -8,7 +8,11 @@ import { Tabs } from "@/components/Tabs";
 import { GanttTab } from "@/components/plan/GanttTab";
 import { LinesTab } from "@/components/plan/LinesTab";
 import { LoadTab } from "@/components/plan/LoadTab";
+import { MeltPlanTab } from "@/components/plan/MeltPlanTab";
+import { MouldPlanTab } from "@/components/plan/MouldPlanTab";
+import { OrdersTab } from "@/components/plan/OrdersTab";
 import { PlanBar } from "@/components/plan/PlanBar";
+import { PlanSteps } from "@/components/plan/PlanSteps";
 import { ReportsTab } from "@/components/plan/ReportsTab";
 import { ApiError, post } from "@/lib/api";
 import { useSession } from "@/lib/store";
@@ -16,7 +20,10 @@ import type { Plan } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 
 const TABS = [
-  { id: "lines", label: "Lines" },
+  { id: "orders", label: "Orders" },
+  { id: "mould", label: "Mould plan" },
+  { id: "melt", label: "Melt plan" },
+  { id: "lines", label: "Plan lines" },
   { id: "gantt", label: "Gantt" },
   { id: "load", label: "Load heatmap" },
   { id: "reports", label: "Print and export" },
@@ -42,9 +49,9 @@ function FirstPlan({ canEdit, onDone }: { canEdit: boolean; onDone: () => void }
     <div className="space-y-3">
       <EmptyState
         title="No plan has been calculated yet"
-        action={canEdit ? <button type="button" className="btn btn-primary" onClick={create} disabled={busy}>{busy ? "Calculating…" : "Calculate the first plan"}</button> : undefined}
+        action={canEdit ? <button type="button" className="btn btn-primary" onClick={create} disabled={busy}>{busy ? "Planning…" : "Run planning"}</button> : undefined}
       >
-        A plan checks every dispatch line against the real hours and capacity of your resources, then shows when each line can ship and what holds it up. It needs shifts, resources, parts with routes, and a monthly schedule.{" "}
+        A plan takes the open orders, subtracts the WIP, FG and dispatched stock, and plans the moulds and the melting for what is left, against the real hours and capacity of your machines and furnaces. It needs shifts, machines, parts with a moulding operation, and the month&apos;s orders.{" "}
         <Link href="/scheduler" className="text-link underline-offset-2 hover:underline">Open the Monthly Scheduler</Link>.
       </EmptyState>
       {error && <FormErrorLine message={error} />}
@@ -57,13 +64,13 @@ export default function PlanPage() {
   const canEdit = role !== "viewer";
   const [version, setVersion] = useState(0);
   const [planId, setPlanId] = useState<number | null>(null);
-  const [tab, setTab] = useState("lines");
+  const [tab, setTab] = useState("orders");
   const current = useApi<Plan | undefined>(planId ? `/plans/${planId}?v=${version}` : `/plans/latest?v=${version}`);
   const { loading, error, data: plan } = current;
 
   return (
     <>
-      <PageHeader title="Plan" subtitle="Dispatch lines checked against real capacity, shift by shift" />
+      <PageHeader title="Plan" subtitle="Moulds and melting for the orders still to produce, against real capacity, shift by shift" />
       {loading ? (
         <LoadingState label="Loading the plan" rows={4} />
       ) : error ? (
@@ -73,7 +80,11 @@ export default function PlanPage() {
       ) : (
         <>
           <PlanBar plan={plan} canEdit={canEdit} onChanged={() => setVersion((v) => v + 1)} onSelect={setPlanId} />
+          <PlanSteps plan={plan} canEdit={canEdit} onTab={setTab} />
           <Tabs tabs={TABS} active={tab} onChange={setTab}>
+            {tab === "orders" && <OrdersTab plan={plan} canEdit={canEdit} onStockChanged={() => setVersion((v) => v + 1)} />}
+            {tab === "mould" && <MouldPlanTab key={plan.calculated_at} plan={plan} />}
+            {tab === "melt" && <MeltPlanTab key={plan.calculated_at} plan={plan} />}
             {tab === "lines" && <LinesTab key={plan.calculated_at} plan={plan} />}
             {tab === "gantt" && <GanttTab key={plan.calculated_at} plan={plan} />}
             {tab === "load" && <LoadTab key={plan.calculated_at} plan={plan} />}

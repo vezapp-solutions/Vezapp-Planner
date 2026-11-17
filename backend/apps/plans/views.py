@@ -10,10 +10,10 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from apps.core.permissions import PlannerWrite
-from apps.core.viewsets import CompanyScopedViewSet
+from apps.core.viewsets import CompanyAPIView, CompanyScopedViewSet
 
-from . import exports, reports, service
-from .models import Plan, PlanAllocation, PlanOperation, PlanStatus
+from . import exports, pour_plans, reports, service
+from .models import Plan, PlanAllocation, PlanHeat, PlanOperation, PlanStatus
 from .serializers import PlanLineDetailSerializer, PlanLineSerializer, PlanSerializer
 
 SEVERITY = {"at_risk": 0, "unscheduled": 1, "tight": 2, "on_track": 3}
@@ -26,6 +26,28 @@ def _date(value, field: str, default: date) -> date:
         return date.fromisoformat(value)
     except ValueError as exc:
         raise ValidationError({field: "Use a date like 2026-11-02."}) from exc
+
+
+class PlanningConfigView(CompanyAPIView):
+    """What this deployment plans, for the screens: planned operations, how melting is planned, and
+    the company's days after pouring and release window."""
+
+    def get(self, request):
+        from django.conf import settings
+
+        from apps.companies.models import CompanySettings
+
+        company = self.get_company()
+        s = CompanySettings.objects.get_or_create(company=company)[0] if company else None
+        return Response(
+            {
+                "planned_operations": list(settings.PLANNED_OPERATIONS),
+                "melting_plan_mode": settings.MELTING_PLAN_MODE,
+                "min_heat_fill_pct": settings.MIN_HEAT_FILL_PCT,
+                "post_pour_days": s.post_pour_days if s else None,
+                "max_lead_days": s.max_lead_days if s else None,
+            }
+        )
 
 
 class PlanViewSet(CompanyScopedViewSet):
@@ -264,22 +286,70 @@ class PlanViewSet(CompanyScopedViewSet):
         lines_per_op: dict[str, set] = defaultdict(set)
         for code, line_id in todays.values_list("op_code", "plan_line_id"):
             lines_per_op[code].add(line_id)
+        work_rows = [
+            {
+                "op_code": w["op_code"],
+                "name": names.get(w["op_code"], w["op_code"]),
+                "lines": len(lines_per_op[w["op_code"]]),
+                "minutes": round(w["minutes"], 2),
+                "qty": round(w["qty"], 2),
+            }
+            for w in sorted(work, key=lambda w: w["op_code"])
+        ]
+        heats = list(PlanHeat.objects.filter(plan=plan, day=day).prefetch_related("pours"))
+        if heats:  # melting is planned by heats, not by allocations
+            pours = [p for h in heats for p in h.pours.all()]
+            work_rows.append(
+                {
+                    "op_code": "melting",
+                    "name": "Melting and pouring",
+                    "lines": len({p.plan_line_id for p in pours}),
+                    "minutes": 0,
+                    "qty": float(sum(p.moulds for p in pours)),
+                }
+            )
         return Response(
             {
                 "date": day,
                 "resources": sorted(merged.values(), key=lambda m: m["code"]),
-                "work": [
-                    {
-                        "op_code": w["op_code"],
-                        "name": names.get(w["op_code"], w["op_code"]),
-                        "lines": len(lines_per_op[w["op_code"]]),
-                        "minutes": round(w["minutes"], 2),
-                        "qty": round(w["qty"], 2),
-                    }
-                    for w in sorted(work, key=lambda w: w["op_code"])
-                ],
+                "work": work_rows,
             }
         )
+
+    @action(detail=True, methods=["get"], url_path="mould-plan")
+    def mould_plan(self, request, pk=None):
+        """The moulds planned per day, shift and machine, with the orders that cannot meet their date."""
+        plan = self.get_object()
+        first = (
+            PlanAllocation.objects.filter(plan=plan, op_code__startswith="moulding")
+            .order_by("slot__slot_date")
+            .values_list("slot__slot_date", flat=True)
+            .first()
+        )
+        start, end = self._window(plan, request, 14, first)
+        return Response(pour_plans.mould_plan(plan, start, end))
+
+    @action(detail=True, methods=["get"], url_path="melt-plan")
+    def melt_plan(self, request, pk=None):
+        """The heats planned per day and furnace: grade, kg, fill and what each heat pours."""
+        plan = self.get_object()
+        first = (
+            PlanHeat.objects.filter(plan=plan).order_by("day").values_list("day", flat=True).first()
+        )
+        start, end = self._window(plan, request, 14, first)
+        return Response(pour_plans.melt_plan(plan, start, end))
+
+    @staticmethod
+    def _window(plan, request, days: int, first: date | None = None) -> tuple[date, date]:
+        """The days to show: `from` (else the first day with work, else today), for `days` days or to `to`."""
+        p = request.query_params
+        today_or_plan = max(plan.plan_from, timezone.localdate())
+        start = _date(p.get("from"), "from", first or today_or_plan)
+        length = int(p["days"]) if p.get("days", "").isdigit() else days
+        end = _date(p.get("to"), "to", start + timedelta(days=max(1, length) - 1))
+        if end < start or (end - start).days > 62:
+            raise ValidationError({"to": "Pick a window of up to 62 days."})
+        return start, end
 
     @action(detail=True, methods=["get"])
     def gantt(self, request, pk=None):
@@ -358,6 +428,12 @@ class PlanViewSet(CompanyScopedViewSet):
             )  # fmt: skip
         elif kind == "dispatch_vs_estimate":
             report = reports.dispatch_vs_estimate(plan, p.get("month", today.strftime("%Y-%m")))
+        elif kind in ("mould_plan", "melt_plan", "planning_pack"):
+            start = _date(p.get("from"), "from", today)
+            end = _date(p.get("to"), "to", start + timedelta(days=13))
+            if end < start or (end - start).days > 62:
+                raise ValidationError({"to": "Pick a window of up to 62 days."})
+            report = reports.planning_report(plan, start, end, kind)
         elif kind == "resource_load":
             start = _date(p.get("from"), "from", today)
             report = reports.resource_load(
@@ -365,7 +441,10 @@ class PlanViewSet(CompanyScopedViewSet):
             )
         else:
             raise ValidationError(
-                {"report": "Choose shift_plan, day_plan, dispatch_vs_estimate or resource_load."}
+                {
+                    "report": "Choose shift_plan, day_plan, dispatch_vs_estimate, resource_load, "
+                    "mould_plan, melt_plan or planning_pack."
+                }
             )
         if fmt == "pdf":
             body, content_type = exports.to_pdf(plan, report), "application/pdf"

@@ -9,6 +9,8 @@ from decimal import Decimal
 from typing import Any, Literal
 
 from .derive import suggested_moulds_per_heat
+from .explode import resources_of, unit_minutes
+from .model import PartSpec, ResourceSpec
 
 Level = Literal["error", "warning", "info"]
 
@@ -295,3 +297,33 @@ def _check_melting(
                 f"Cooling time is 0 for a {casting.normalize():f} kg casting. Heavy castings usually need hours in the mould.",
             )
         )
+
+
+def plannability(part: PartSpec, resources: "list[ResourceSpec]") -> list[str]:
+    """What is missing from the masters before this part can be planned for moulding and melting.
+
+    An empty list means it can be planned. The texts are shown to the planner as they are, so each
+    says what to fill in."""
+    by_id = {r.id: r for r in resources}
+    reasons: list[str] = []
+    moulding = next((o for o in part.ops if o.kind == "moulding"), None)
+    if moulding is None:
+        reasons.append("The part has no moulding operation in its route.")
+    else:
+        lines = [r for r in resources_of(moulding, by_id) if r.active]
+        if not lines:
+            reasons.append("No moulding machine is selected for the part's moulding operation.")
+        elif all(unit_minutes(moulding, r) is None for r in lines):
+            reasons.append(
+                "No moulding rate: enter moulds per hour on the part's moulding operation "
+                "or a rate on the moulding machine."
+            )
+    if not part.pouring_weight_per_mould_kg or part.pouring_weight_per_mould_kg <= 0:
+        reasons.append("No pouring weight per mould on the part.")
+    if not (part.grade_name or "").strip():
+        reasons.append("No material grade on the part.")
+    if not any(
+        r.kind == "furnace" and r.active and r.heat_kg and r.heat_minutes for r in resources
+    ):
+        reasons.append("No furnace with a heat size and heat time in the machine master.")
+    return reasons

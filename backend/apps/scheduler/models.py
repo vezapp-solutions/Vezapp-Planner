@@ -11,6 +11,11 @@ class LineStatus(models.TextChoices):
     IN_PROGRESS = "in_progress", "In progress"
     DISPATCHED = "dispatched", "Dispatched"
     CANCELLED = "cancelled", "Cancelled"
+    CLOSED = "closed", "Closed"
+
+
+# An order is open while it can still be planned; the other statuses leave it visible as history.
+OPEN_STATUSES = (LineStatus.PLANNED, LineStatus.IN_PROGRESS)
 
 
 class UploadMode(models.TextChoices):
@@ -54,7 +59,11 @@ class ScheduleLine(CompanyScopedModel):
     dispatch_qty = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     internal_dispatch_date = models.DateField()
     actual_dispatch_date = models.DateField(null=True, blank=True)
+    # Pieces already sent to the customer. Several dispatches add up here; the date is the last one.
     actual_dispatched_qty = models.PositiveIntegerField(null=True, blank=True)
+    # Stock the planner keeps up to date by hand once production has started.
+    wip_qty = models.PositiveIntegerField(default=0)  # castings made and still in process
+    fg_qty = models.PositiveIntegerField(default=0)  # finished goods ready to dispatch
     remarks = models.CharField(max_length=500, blank=True)
     status = models.CharField(max_length=12, choices=LineStatus.choices, default=LineStatus.PLANNED)
     upload_batch = models.ForeignKey(
@@ -77,3 +86,13 @@ class ScheduleLine(CompanyScopedModel):
     @property
     def month(self) -> str:
         return self.internal_dispatch_date.strftime("%Y-%m")
+
+    @property
+    def is_open(self) -> bool:
+        return self.status in OPEN_STATUSES
+
+    @property
+    def balance(self) -> int:
+        """What is still to be produced: the order less everything already made or sent."""
+        covered = self.wip_qty + self.fg_qty + (self.actual_dispatched_qty or 0)
+        return max(0, self.dispatch_qty - covered)

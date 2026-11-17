@@ -46,8 +46,15 @@ export const NAV: NavItem[] = [
   { href: "/settings/audit", label: "Audit log", roles: admins },
 ];
 
-export function navFor(role: Role): NavItem[] {
-  return NAV.filter((item) => item.roles.includes(role));
+/** Screens that only make sense for an operation that is planned; hidden otherwise ("Phase 2"). */
+const NEEDS_PLANNED: Record<string, string> = { "/machine-shop": "machining" };
+
+export function navFor(role: Role, planned?: readonly string[] | null): NavItem[] {
+  return NAV.filter(
+    (item) =>
+      item.roles.includes(role) &&
+      (!planned || !NEEDS_PLANNED[item.href] || planned.includes(NEEDS_PLANNED[item.href])),
+  );
 }
 
 export const canEditMasters = (role: Role) => role === "vezapp_admin" || role === "company_admin";

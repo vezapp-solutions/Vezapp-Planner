@@ -8,12 +8,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from apps.core.models import AuditLog
 from apps.core.permissions import PlannerOnly, PlannerWrite
 from apps.core.tenancy import resolve_company
 from apps.core.viewsets import CompanyAPIView, CompanyScopedViewSet
 
 from . import reports, service
-from .models import LineStatus, ScheduleLine, UploadBatch
+from .models import OPEN_STATUSES, LineStatus, ScheduleLine, UploadBatch
 from .serializers import ScheduleLineSerializer, UploadBatchSerializer
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -50,11 +51,50 @@ class ScheduleLineViewSet(CompanyScopedViewSet):
                 qs = qs.filter(**{lookup: int(p[param])})
         if p.get("status") in LineStatus.values:
             qs = qs.filter(status=p["status"])
+        if p.get("open") in ("1", "true"):
+            qs = qs.filter(status__in=OPEN_STATUSES)
         if p.get("q"):
             qs = qs.filter(part__part_number__icontains=p["q"]) | qs.filter(
                 part__name__icontains=p["q"]
             )
         return qs
+
+    @action(detail=True, methods=["get"])
+    def history(self, request, pk=None):
+        """Who changed the order's quantity, stock or status, when, and from what to what."""
+        line = self.get_object()
+        watched = {
+            "dispatch_qty": "Order qty",
+            "wip_qty": "WIP stock",
+            "fg_qty": "FG stock",
+            "actual_dispatched_qty": "Dispatched qty",
+            "status": "Status",
+            "internal_dispatch_date": "Dispatch date",
+        }
+        rows = AuditLog.objects.filter(
+            company=line.company, model_label="scheduler.ScheduleLine", object_pk=str(line.pk)
+        ).order_by("-created_at", "-id")[:200]
+        changes = []
+        for row in rows:
+            before, after = row.before or {}, row.after or {}
+            for key, label in watched.items():
+                if row.action == "create":
+                    if after.get(key) not in (None, 0, ""):
+                        changes.append(self._change(row, label, None, after.get(key)))
+                elif before.get(key) != after.get(key):
+                    changes.append(self._change(row, label, before.get(key), after.get(key)))
+        return Response({"results": changes[:100]})
+
+    @staticmethod
+    def _change(row, label, old, new):
+        return {
+            "at": row.created_at.isoformat(),
+            "user": row.username or "System",
+            "action": row.action,
+            "field": label,
+            "old": old,
+            "new": new,
+        }
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
