@@ -13,6 +13,7 @@ function CreatePart({ part, onClose, onCreated }: { part: UnmatchedPart; onClose
   const number = part.part_number;
   const grades = useApi<Page<Grade>>("/grades?page_size=500");
   const customers = useApi<Page<Customer>>("/customers?page_size=500");
+  const needsCustomer = part.customer_code === "";
   const fromFile = customers.data?.results.find((c) => c.code.toLowerCase() === part.customer_code.toLowerCase());
   const fields: FieldSpec[] = [
     { key: "part_number", label: "Part number", type: "text", required: true },
@@ -32,9 +33,10 @@ function CreatePart({ part, onClose, onCreated }: { part: UnmatchedPart; onClose
       key: "customer",
       label: "Default customer",
       type: "select",
-      blankLabel: "None",
+      blankLabel: needsCustomer ? undefined : "None",
+      required: needsCustomer,
       options: (customers.data?.results ?? []).map((c) => ({ value: c.id, label: `${c.code} ${c.name}` })),
-      hint: "Orders in the file with no customer use this one.",
+      hint: needsCustomer ? "The file gives no customer for this part, so choose the one its orders belong to." : "Orders in the file with no customer use this one.",
     },
   ];
   const [draft, setDraft] = useState<Draft>({ part_number: number, name: "", grade: "", casting_weight_kg: "", pouring_weight_per_mould_kg: "", cavities_per_mould: "1", customer: "" });
