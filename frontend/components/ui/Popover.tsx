@@ -119,7 +119,7 @@ export function Popover({
         minWidth: position?.minWidth,
         visibility: position ? "visible" : "hidden",
       }}
-      className={`popover-in z-[80] rounded-xl border border-line bg-surface shadow-lg ${className}`}
+      className={`popover-in z-[80] rounded-card-lg border border-line bg-surface shadow-lg ${className}`}
     >
       {children}
     </div>,

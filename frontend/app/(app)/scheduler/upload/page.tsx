@@ -211,7 +211,7 @@ export default function UploadPage() {
         {error && <FormErrorLine message={error} />}
 
         {done && (
-          <div role="status" className="rounded-md border border-ok bg-ok-wash px-4 py-3">
+          <div role="status" className="rounded-card border border-ok bg-ok-wash px-4 py-3">
             <p className="font-medium text-ok">Uploaded {done.file_name}</p>
             <p className="mt-1 text-sm">
               {formatNumber(done.rows_inserted)} added, {formatNumber(done.rows_updated)} updated
@@ -248,7 +248,7 @@ export default function UploadPage() {
                 ))}
               </div>
 
-              <div className="max-h-[32rem] overflow-auto rounded-md border border-line">
+              <div className="max-h-[32rem] overflow-auto rounded-card border border-line">
                 <table className="w-full min-w-[72rem] text-left text-sm">
                   <thead className="sticky top-0 border-b border-line bg-sunken text-ink-soft">
                     <tr>

@@ -18,7 +18,7 @@ function Detail({ machine, days }: { machine: Machine; days: string[] }) {
         {machine.setup > 0 && <>, including <span className="font-mono text-ink">{hours(machine.setup)} h</span> of setup</>}.
       </p>
       {machine.downtime.length > 0 && (
-        <ul className="rounded-md border border-warn bg-warn-wash px-3 py-2" aria-label="Blocked periods">
+        <ul className="rounded-card border border-warn bg-warn-wash px-3 py-2" aria-label="Blocked periods">
           {machine.downtime.map((d) => (
             <li key={d.start}><span className="font-medium">Blocked</span> {formatDateTime(d.start)} to {formatDateTime(d.end)}{d.reason ? `: ${d.reason}` : ""}</li>
           ))}

@@ -82,7 +82,7 @@ function ApplyBox({ scenario, onApplied }: { scenario: ScenarioDetail; onApplied
     );
   }
   return (
-    <div role="group" aria-label="Confirm apply" className="space-y-3 rounded-md border border-warn bg-warn-wash px-4 py-3">
+    <div role="group" aria-label="Confirm apply" className="space-y-3 rounded-card border border-warn bg-warn-wash px-4 py-3">
       <p className="font-medium">Applying makes these changes real, under your name. This cannot be undone with one click.</p>
       <ul className="list-disc space-y-1 pl-5 text-sm">
         {scenario.changes.map((c) => (
@@ -117,7 +117,7 @@ function AppliedNote({ scenario, summary }: { scenario: ScenarioDetail; summary?
       ].filter(Boolean)
     : [];
   return (
-    <div role="status" className="space-y-1 rounded-md border border-ok bg-ok-wash px-4 py-3 text-sm">
+    <div role="status" className="space-y-1 rounded-card border border-ok bg-ok-wash px-4 py-3 text-sm">
       <p className="font-medium text-ok">
         Applied{scenario.applied_by_name ? ` by ${scenario.applied_by_name}` : ""}
         {scenario.applied_at ? ` on ${formatDateTime(scenario.applied_at)}` : ""}.
@@ -217,7 +217,7 @@ export default function ScenarioPage() {
           {s.changes.length === 0 ? (
             <p className="text-sm text-ink-soft">No changes yet. Add one below.</p>
           ) : (
-            <ol className="divide-y divide-line rounded-md border border-line text-sm">
+            <ol className="divide-y divide-line rounded-card border border-line text-sm">
               {s.changes.map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2">
                   <span>
@@ -250,7 +250,7 @@ export default function ScenarioPage() {
         )}
 
         {STATE_TEXT[s.state] && draft && s.state !== "never_run" && (
-          <div role="status" className="rounded-md border border-warn bg-warn-wash px-4 py-2 text-sm">
+          <div role="status" className="rounded-card border border-warn bg-warn-wash px-4 py-2 text-sm">
             <span className="font-medium text-warn">Result out of date.</span> {STATE_TEXT[s.state]}
           </div>
         )}

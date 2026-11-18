@@ -35,7 +35,7 @@ export function SlideOver({
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <button type="button" className="absolute inset-0 bg-black/50" aria-label="Close panel" onClick={onClose} tabIndex={-1} />
       <div
-        className={`slide-in relative flex h-full w-full flex-col border-l border-line bg-surface ${wide ? "sm:max-w-3xl" : "sm:max-w-xl"}`}
+        className={`slide-in relative flex h-full w-full flex-col overflow-hidden border-l border-line bg-surface sm:rounded-l-dialog ${wide ? "sm:max-w-3xl" : "sm:max-w-xl"}`}
       >
         <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-3">
           <div className="min-w-0">

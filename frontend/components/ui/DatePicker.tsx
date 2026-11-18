@@ -23,7 +23,7 @@ export interface PickerChange {
 }
 
 const navButton =
-  "inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-soft transition-colors duration-150 hover:bg-sunken hover:text-ink";
+  "inline-flex h-8 w-8 items-center justify-center rounded-chip text-ink-soft transition-colors duration-150 hover:bg-sunken hover:text-ink";
 
 function Arrow({ dir }: { dir: "left" | "right" }) {
   return (
@@ -173,7 +173,7 @@ export function DatePicker({
               <Arrow dir="left" />
             </button>
             {level === "days" ? (
-              <button type="button" className="rounded-lg px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-sunken" aria-label={`${MONTH_NAMES[view.m - 1]} ${view.y}, choose a month`} onClick={() => setLevel("months")}>
+              <button type="button" className="rounded-chip px-2 py-1 text-sm font-semibold transition-colors duration-150 hover:bg-sunken" aria-label={`${MONTH_NAMES[view.m - 1]} ${view.y}, choose a month`} onClick={() => setLevel("months")}>
                 {MONTH_NAMES[view.m - 1]} {view.y}
               </button>
             ) : (
@@ -228,7 +228,7 @@ export function DatePicker({
                     aria-label={`${MONTH_NAMES[i]} ${view.y}`}
                     aria-pressed={isSelected}
                     onClick={() => pickMonth(i + 1)}
-                    className={`rounded-lg py-2.5 text-sm transition-colors duration-150 ${isSelected ? "bg-action font-semibold text-on-action" : "hover:bg-sunken"}`}
+                    className={`rounded-chip py-2.5 text-sm transition-colors duration-150 ${isSelected ? "bg-action font-semibold text-on-action" : "hover:bg-sunken"}`}
                   >
                     {name}
                   </button>
@@ -257,12 +257,12 @@ export function DatePicker({
           <div className="mt-3 flex items-center justify-between border-t border-line pt-2">
             <div className="flex gap-1">
               {mode !== "month" && (
-                <button type="button" className="rounded-lg px-2 py-1 text-sm font-medium text-link transition-colors duration-150 hover:bg-sunken" onClick={() => { goToDay(today); pickDay(today); }}>
+                <button type="button" className="rounded-chip px-2 py-1 text-sm font-medium text-link transition-colors duration-150 hover:bg-sunken" onClick={() => { goToDay(today); pickDay(today); }}>
                   Today
                 </button>
               )}
               {clearable && value && (
-                <button type="button" className="rounded-lg px-2 py-1 text-sm text-ink-soft transition-colors duration-150 hover:bg-sunken hover:text-ink" onClick={() => { emit(""); close(); trigger.current?.focus(); }}>
+                <button type="button" className="rounded-chip px-2 py-1 text-sm text-ink-soft transition-colors duration-150 hover:bg-sunken hover:text-ink" onClick={() => { emit(""); close(); trigger.current?.focus(); }}>
                   Clear
                 </button>
               )}

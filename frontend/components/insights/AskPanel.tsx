@@ -49,7 +49,7 @@ function CopyButton({ text }: { text: string }) {
       type="button"
       onClick={() => void copy()}
       aria-label={done ? "Copied" : "Copy this answer"}
-      className="inline-flex min-h-7 items-center gap-1 rounded-md px-1.5 text-xs text-ink-soft opacity-0 transition duration-150 hover:bg-sunken hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+      className="inline-flex min-h-7 items-center gap-1 rounded-card px-1.5 text-xs text-ink-soft opacity-0 transition duration-150 hover:bg-sunken hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
     >
       <svg {...icon} className="h-3.5 w-3.5">
         {done ? <path d="M4 10.5l4 4 8-9" /> : <><rect x="7" y="7" width="9" height="9" rx="2" /><path d="M13 7V5.5A1.5 1.5 0 0011.5 4h-6A1.5 1.5 0 004 5.5v6A1.5 1.5 0 005.5 13H7" /></>}
@@ -63,7 +63,7 @@ function Bubble({ message, notice }: { message: Message; notice: string | null }
   if (message.from === "you") {
     return (
       <div className="chat-in flex justify-end">
-        <p className="max-w-[85%] whitespace-pre-line rounded-2xl rounded-br-md bg-action px-4 py-2.5 text-[0.9375rem] leading-relaxed text-on-action shadow-sm sm:max-w-[75%]">
+        <p className="max-w-[85%] whitespace-pre-line rounded-card-lg rounded-br-chip bg-action px-4 py-2.5 text-[0.9375rem] leading-relaxed text-on-action shadow-sm sm:max-w-[75%]">
           {message.text}
         </p>
       </div>
@@ -77,7 +77,7 @@ function Bubble({ message, notice }: { message: Message; notice: string | null }
           Vezapp Planner
           {message.mode === "ai" ? <AiBadge /> : <span className="rounded-full border border-line px-2 py-0.5">Basic</span>}
         </p>
-        <div className="rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3 text-[0.9375rem] leading-relaxed shadow-sm">
+        <div className="rounded-card-lg rounded-tl-chip border border-line bg-surface px-4 py-3 text-[0.9375rem] leading-relaxed shadow-sm">
           <RichText text={message.text} />
           {message.notes?.filter((n) => n !== notice).map((n) => (
             <p key={n} className="mt-2 text-xs text-ink-soft">{n}</p>
@@ -95,7 +95,7 @@ function Typing() {
   return (
     <div className="chat-in flex items-start gap-3" role="status">
       <Avatar />
-      <div className="inline-flex items-center gap-1.5 rounded-2xl rounded-tl-md border border-line bg-surface px-4 py-3.5 shadow-sm">
+      <div className="inline-flex items-center gap-1.5 rounded-card-lg rounded-tl-chip border border-line bg-surface px-4 py-3.5 shadow-sm">
         <span className="typing-dot" />
         <span className="typing-dot" style={{ animationDelay: "160ms" }} />
         <span className="typing-dot" style={{ animationDelay: "320ms" }} />
@@ -193,7 +193,7 @@ export function AskPanel() {
       className={
         expanded
           ? "chat-expand fixed inset-0 z-[60] flex h-dvh flex-col overflow-hidden bg-surface"
-          : "flex h-[calc(100dvh-17rem)] max-h-[52rem] min-h-[30rem] flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm"
+          : "flex h-[calc(100dvh-17rem)] max-h-[52rem] min-h-[30rem] flex-col overflow-hidden rounded-card-lg border border-line bg-surface shadow-sm"
       }
     >
       <header className="border-b border-line px-4 py-3">
@@ -251,7 +251,7 @@ export function AskPanel() {
                   type="button"
                   onClick={() => void send(s, s === SUMMARY)}
                   disabled={busy}
-                  className="group flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left text-sm font-medium transition duration-150 hover:border-action hover:bg-brand-wash hover:shadow-[inset_0_0_14px_1px_rgb(28_228_212/0.26)]"
+                  className="group flex items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left text-sm font-medium transition duration-150 hover:border-action hover:bg-brand-wash hover:shadow-[inset_0_0_14px_1px_rgb(28_228_212/0.26)]"
                 >
                   {s}
                   <svg {...icon} className="h-4 w-4 shrink-0 text-ink-soft transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-action"><path d="M4 10h12M11 5l5 5-5 5" /></svg>
@@ -288,7 +288,7 @@ export function AskPanel() {
             e.preventDefault();
             void send(question);
           }}
-          className="flex items-end gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--ink)_38%,var(--ground))] bg-surface p-1.5 pl-4 transition-[border-color,box-shadow] duration-150 focus-within:border-action focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--action)_24%,transparent)]"
+          className="flex items-end gap-2 rounded-card-lg border border-[color-mix(in_srgb,var(--ink)_38%,var(--ground))] bg-surface p-1.5 pl-4 transition-[border-color,box-shadow] duration-150 focus-within:border-action focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--action)_24%,transparent)]"
         >
           <label className="sr-only" htmlFor="ask-question">Your question</label>
           <textarea
@@ -311,7 +311,7 @@ export function AskPanel() {
             type="submit"
             aria-label="Send"
             disabled={busy || !question.trim()}
-            className="btn btn-primary !min-h-10 !w-10 !rounded-xl !p-0"
+            className="btn btn-primary !min-h-10 !w-10 !p-0"
           >
             <svg {...icon} strokeWidth={2.2} className="h-5 w-5"><path d="M10 16V4M5 9l5-5 5 5" /></svg>
           </button>

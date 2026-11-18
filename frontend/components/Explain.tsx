@@ -61,7 +61,7 @@ export function Explain({ traced, label, unit = "" }: { traced: Traced; label: s
           id={id}
           role="dialog"
           aria-label={`How ${label} is calculated`}
-          className="absolute left-0 top-full z-30 mt-1 block w-72 max-w-[80vw] rounded-md border border-line bg-surface p-3 text-left text-sm font-normal"
+          className="absolute left-0 top-full z-30 mt-1 block w-72 max-w-[80vw] rounded-card border border-line bg-surface p-3 text-left text-sm font-normal"
         >
           <span className="block font-medium">{label}</span>
           <span className="mt-1 block text-ink-soft">{traced.formula}</span>

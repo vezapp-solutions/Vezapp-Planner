@@ -29,12 +29,12 @@ export function MeltPlanTab({ plan }: { plan: Plan }) {
           {summary && (summary.shortfall_heats || summary.under_filled) ? (
             <div className="flex flex-wrap gap-2 text-sm" aria-label="Melt plan warnings">
               {summary.shortfall_heats ? (
-                <span className="rounded-md bg-danger-wash px-3 py-1.5 text-danger">
+                <span className="rounded-card bg-danger-wash px-3 py-1.5 text-danger">
                   {summary.shortfall_heats} heat{summary.shortfall_heats === 1 ? "" : "s"} with no furnace room
                 </span>
               ) : null}
               {summary.under_filled ? (
-                <span className="rounded-md bg-warn-wash px-3 py-1.5 text-warn">
+                <span className="rounded-card bg-warn-wash px-3 py-1.5 text-warn">
                   {summary.under_filled} under-filled heat{summary.under_filled === 1 ? "" : "s"}
                 </span>
               ) : null}

@@ -90,14 +90,14 @@ export function UnmatchedParts({ parts, onCreated, children }: { parts: Unmatche
   const [creating, setCreating] = useState<string | null>(null);
   if (parts.length === 0) return null;
   return (
-    <section aria-label="Parts that are not in the Part Master" className="rounded-md border border-warn bg-warn-wash/50 p-4">
+    <section aria-label="Parts that are not in the Part Master" className="rounded-card border border-warn bg-warn-wash/50 p-4">
       <h3 className="font-display text-lg font-semibold">
         {parts.length} part{parts.length === 1 ? "" : "s"} not in the Part Master
       </h3>
       <p className="mt-1 text-sm">
         The other rows load as normal. Create each part below and the file is checked again, or fix the part numbers in Excel and upload again.
       </p>
-      <ul className="mt-3 divide-y divide-line rounded-md border border-line bg-surface">
+      <ul className="mt-3 divide-y divide-line rounded-card border border-line bg-surface">
         {parts.map((p) => (
           <li key={p.part_number} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2">
             <span>

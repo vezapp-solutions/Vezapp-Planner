@@ -91,13 +91,13 @@ export function InsightCard({ card, canTest }: { card: Insight; canTest: boolean
       </div>
 
       {why && (
-        <ul className="mt-3 list-disc space-y-1 rounded-md bg-sunken px-6 py-3 text-sm" aria-label="How this was worked out">
+        <ul className="mt-3 list-disc space-y-1 rounded-card bg-sunken px-6 py-3 text-sm" aria-label="How this was worked out">
           {card.why.map((w) => <li key={w}>{w}</li>)}
         </ul>
       )}
       {error && <div className="mt-3"><FormErrorLine message={error} /></div>}
       {explained && (
-        <div className={`mt-3 space-y-1 rounded-md border border-line px-3 py-2 text-sm ${explained.mode === "ai" ? "border-l-4 border-l-action" : ""}`} role="status">
+        <div className={`mt-3 space-y-1 rounded-card border border-line px-3 py-2 text-sm ${explained.mode === "ai" ? "border-l-4 border-l-action" : ""}`} role="status">
           {explained.mode === "ai" && <AiBadge />}
           <RichText text={explained.answer} />
           {explained.notes.map((n) => <p key={n} className="text-xs text-ink-soft">{n}</p>)}
@@ -105,7 +105,7 @@ export function InsightCard({ card, canTest }: { card: Insight; canTest: boolean
         </div>
       )}
       {tested && (
-        <div className="mt-3 space-y-2 rounded-md border border-line px-3 py-3">
+        <div className="mt-3 space-y-2 rounded-card border border-line px-3 py-3">
           <p className="text-sm font-medium">Result of the test. Nothing was changed.</p>
           <ResultPanel result={tested} ranAt={null} stale={false} />
         </div>

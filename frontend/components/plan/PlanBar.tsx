@@ -100,7 +100,7 @@ export function PlanBar({
       </div>
 
       {plan.stale && draft && (
-        <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-ember bg-ember-wash px-4 py-2.5 text-sm">
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-card border border-ember bg-ember-wash px-4 py-2.5 text-sm">
           <span className="font-semibold text-ember-ink">Stale: run planning again.</span>
           <span>{plan.stale_reasons.join(" ")}</span>
           {canEdit && (

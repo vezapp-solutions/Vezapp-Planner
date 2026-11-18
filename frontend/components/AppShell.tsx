@@ -181,7 +181,7 @@ function UserCard() {
   }
 
   return (
-    <div className="m-3 flex items-center gap-3 rounded-xl border border-side-line bg-side-raise p-2.5">
+    <div className="m-3 flex items-center gap-3 rounded-card border border-side-line bg-side-raise p-2.5">
       <Avatar name={user.full_name} />
       <div className="min-w-0 flex-1 leading-tight">
         <p className="truncate text-sm font-semibold text-white">{user.full_name}</p>
@@ -193,7 +193,7 @@ function UserCard() {
         disabled={busy}
         aria-label="Sign out"
         title="Sign out"
-        className="flex h-9 w-9 flex-none items-center justify-center rounded-lg text-side-soft transition-colors hover:bg-side hover:text-white focus-visible:outline-2 focus-visible:outline-brand"
+        className="flex h-9 w-9 flex-none items-center justify-center rounded-chip text-side-soft transition-colors hover:bg-side hover:text-white focus-visible:outline-2 focus-visible:outline-brand"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M14 4.5h4.5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H14M10 8l-4 4 4 4M6 12h9" />
@@ -478,12 +478,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       {drawerOpen && (
         <div className="fixed inset-0 z-40 xl:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close menu" onClick={() => setDrawerOpen(false)} />
-          <aside className="relative flex h-full w-72 max-w-[85vw] flex-col bg-side shadow-2xl">
+          <aside className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-hidden rounded-r-dialog bg-side shadow-2xl">
             <div className="flex h-16 flex-none items-center justify-between px-5">
               <Logo height={24} onDark />
               <button
                 type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-side-soft hover:bg-side-raise hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-chip text-side-soft hover:bg-side-raise hover:text-white"
                 aria-label="Close"
                 onClick={() => setDrawerOpen(false)}
               >

@@ -555,7 +555,7 @@ export function RouteEditor({ part, initial, resources, machineTypes, otherParts
   return (
     <div className="space-y-4">
       {initial.is_template && !saved && (
-        <p className="rounded-md border border-line bg-sunken px-3 py-2 text-sm">
+        <p className="rounded-card border border-line bg-sunken px-3 py-2 text-sm">
           This part has no route yet. The standard operations are listed below: switch on the ones it uses, enter times and choose the resources, then save.
         </p>
       )}

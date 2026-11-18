@@ -56,7 +56,7 @@ export function DowntimeManager({ resourceId, canEdit, onChanged }: { resourceId
       ) : list.error ? (
         <ErrorState message={list.error.message} onRetry={list.reload} />
       ) : list.data?.results.length ? (
-        <ul className="divide-y divide-line rounded-md border border-line text-sm">
+        <ul className="divide-y divide-line rounded-card border border-line text-sm">
           {list.data.results.map((d) => (
             <li key={d.id} className="flex items-center justify-between gap-3 px-3 py-2">
               <span>
@@ -76,7 +76,7 @@ export function DowntimeManager({ resourceId, canEdit, onChanged }: { resourceId
       )}
 
       {canEdit && (
-        <div className="space-y-2 rounded-md border border-dashed border-line p-3">
+        <div className="space-y-2 rounded-card border border-dashed border-line p-3">
           <FormError message={error} />
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm font-medium">

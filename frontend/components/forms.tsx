@@ -68,7 +68,7 @@ export function toPayload(draft: Draft, fields: FieldSpec[]): Record<string, unk
 export function FormError({ message }: { message?: string | null }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-md border border-danger bg-danger-wash px-3 py-2 text-sm">
+    <p role="alert" className="rounded-card border border-danger bg-danger-wash px-3 py-2 text-sm">
       {message}
     </p>
   );
@@ -184,7 +184,7 @@ export function RecordForm({
                   f.options.map((o) => {
                     const on = chosen.includes(o.value);
                     return (
-                      <label key={o.value} className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm transition-colors duration-150 ${on ? "border-action bg-brand-wash" : "border-line hover:border-ink-soft hover:bg-sunken"}`}>
+                      <label key={o.value} className={`flex min-h-10 cursor-pointer items-center gap-2 rounded-chip border px-3 text-sm transition-colors duration-150 ${on ? "border-action bg-brand-wash" : "border-line hover:border-ink-soft hover:bg-sunken"}`}>
                         <input
                           type="checkbox"
                           className="size-[1.125rem]"

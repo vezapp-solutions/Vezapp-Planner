@@ -175,7 +175,7 @@ export function Select({
               aria-disabled={item.disabled || undefined}
               onMouseEnter={() => !item.disabled && setActive(index)}
               onClick={() => choose(index)}
-              className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-150 ${
+              className={`flex cursor-pointer items-center justify-between gap-3 rounded-[calc(var(--radius-card-lg)-0.25rem)] px-3 py-2 text-sm transition-colors duration-150 ${
                 item.disabled ? "cursor-not-allowed opacity-50" : index === active ? "bg-sunken" : ""
               } ${isSelected ? "font-semibold text-link" : ""} ${item.value === "" && !isSelected ? "text-ink-soft" : ""}`}
             >

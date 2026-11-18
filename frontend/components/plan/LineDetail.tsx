@@ -46,7 +46,7 @@ export function LineDetailPanel({ planId, lineId, version, onClose }: { planId: 
           </dl>
 
           {d.holding_text && (
-            <p className="rounded-md border border-warn bg-warn-wash px-3 py-2 text-sm">
+            <p className="rounded-card border border-warn bg-warn-wash px-3 py-2 text-sm">
               <strong>Held up by {d.holding_op}.</strong> {d.holding_text}
             </p>
           )}
@@ -76,7 +76,7 @@ export function LineDetailPanel({ planId, lineId, version, onClose }: { planId: 
 
           <section aria-labelledby="ops-title">
             <h3 id="ops-title" className="mb-2 font-display text-lg font-semibold">Operations</h3>
-            <div className="overflow-x-auto rounded-md border border-line">
+            <div className="overflow-x-auto rounded-card border border-line">
               <table className="w-full min-w-[44rem] text-left text-sm">
                 <thead className="border-b border-line bg-sunken text-ink-soft">
                   <tr>
@@ -114,7 +114,7 @@ export function LineDetailPanel({ planId, lineId, version, onClose }: { planId: 
             {d.allocations.length === 0 ? (
               <p className="text-sm text-ink-soft">Nothing is scheduled on a resource.</p>
             ) : (
-              <div className="max-h-72 overflow-auto rounded-md border border-line">
+              <div className="max-h-72 overflow-auto rounded-card border border-line">
                 <table className="w-full min-w-[34rem] text-left text-sm">
                   <thead className="sticky top-0 border-b border-line bg-sunken text-ink-soft">
                     <tr>{["Day", "Shift", "Operation", "Resource", "Quantity", "Minutes"].map((h) => <th key={h} scope="col" className="px-3 py-1.5 font-medium">{h}</th>)}</tr>

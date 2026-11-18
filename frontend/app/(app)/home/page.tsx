@@ -26,7 +26,7 @@ function Hero() {
   const plantNames = plants.data?.results.map((p) => p.name).join(", ");
 
   return (
-    <section className="scene rounded-2xl px-6 py-7 sm:px-9 sm:py-9">
+    <section className="scene rounded-dialog px-6 py-7 sm:px-9 sm:py-9">
       <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#9fb0ab]">
         {formatWeekday(today)} · {formatDate(today)}
       </p>
@@ -166,7 +166,7 @@ function PlanSection() {
   return (
     <div className="space-y-6">
       {plan.stale && plan.status === "draft" && (
-        <p role="status" className="rounded-md border border-warn bg-warn-wash px-4 py-2 text-sm">
+        <p role="status" className="rounded-card border border-warn bg-warn-wash px-4 py-2 text-sm">
           <strong className="text-warn">This plan is out of date.</strong> {plan.stale_reasons.join(" ")}{" "}
           <Link href="/plan" className="font-medium text-link underline-offset-2 hover:underline">Recalculate it</Link>
         </p>

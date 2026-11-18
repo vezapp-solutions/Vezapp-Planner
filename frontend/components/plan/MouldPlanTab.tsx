@@ -22,7 +22,7 @@ export function MouldPlanTab({ plan }: { plan: Plan }) {
       ) : (
         <div className="space-y-4">
           {data.data.warnings.length > 0 && (
-            <section aria-label="Orders that cannot meet their dispatch date" className="rounded-md border border-danger bg-danger-wash/50 p-4">
+            <section aria-label="Orders that cannot meet their dispatch date" className="rounded-card border border-danger bg-danger-wash/50 p-4">
               <h3 className="font-display text-lg font-semibold text-danger">
                 {data.data.warnings.length} order{data.data.warnings.length === 1 ? "" : "s"} cannot meet the dispatch date
               </h3>

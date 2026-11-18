@@ -21,7 +21,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-ink-soft/40 bg-sunken/50 px-5 py-7">
+    <div className="rounded-card-lg border border-dashed border-ink-soft/40 bg-sunken/50 px-5 py-7">
       <p className="font-display text-lg font-semibold">{title}</p>
       {children && <p className="mt-1 max-w-prose text-sm text-ink-soft">{children}</p>}
       {action && <div className="mt-3">{action}</div>}
@@ -39,7 +39,7 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div role="alert" className="rounded-md border border-danger bg-danger-wash px-4 py-4">
+    <div role="alert" className="rounded-card border border-danger bg-danger-wash px-4 py-4">
       <p className="font-medium text-danger">{title}</p>
       <p className="mt-1 text-sm">{message}</p>
       {onRetry && (
@@ -54,7 +54,7 @@ export function ErrorState({
 /** A short inline error line (a failed action), not a whole-section failure. */
 export function FormErrorLine({ message }: { message: string }) {
   return (
-    <p role="alert" className="rounded-md border border-danger bg-danger-wash px-3 py-2 text-sm">
+    <p role="alert" className="rounded-card border border-danger bg-danger-wash px-3 py-2 text-sm">
       {message}
     </p>
   );
