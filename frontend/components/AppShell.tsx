@@ -447,7 +447,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-        <Link href="/home" aria-label="Home">
+        <Link href="/home" aria-label="Home" className="flex min-h-10 items-center">
           <Logo height={22} priority />
         </Link>
         {user.role === "vezapp_admin" ? (

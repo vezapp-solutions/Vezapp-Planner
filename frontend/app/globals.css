@@ -1236,11 +1236,11 @@ table.text-left thead th {
     border: 1px solid color-mix(in srgb, var(--line) 75%, transparent) !important;
     border-radius: var(--radius-card);
   }
+  /* A cell is a block with its heading floated to the left, so a cell holding several pieces (a part number, its
+     name and its grade) flows as one right-aligned block instead of spreading each piece across the row. */
   table.text-left:not([data-matrix]) td {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
+    display: flow-root;
+    max-width: none !important;
     padding: 0.5rem 0 !important;
     text-align: right !important;
     white-space: normal !important;
@@ -1251,25 +1251,35 @@ table.text-left thead th {
   }
   table.text-left:not([data-matrix]) td[data-label]:not([data-label=""])::before {
     content: attr(data-label);
-    flex: none;
+    float: left;
     max-width: 45%;
+    margin-right: 1rem;
+    padding-top: 0.125rem;
     text-align: left;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--ink-soft);
   }
+  /* A link or button in a cell keeps its 40px tap area but borrows the cell's padding, so the row does not grow
+     and the text still lines up with its label. */
+  table.text-left:not([data-matrix]) td a.min-h-6,
+  table.text-left:not([data-matrix]) td button.min-h-6 {
+    margin-block: -0.5rem;
+  }
+  table.text-left:not([data-matrix]) td button.min-w-6 {
+    justify-content: flex-end;
+  }
   /* A cell of running text (the audit log's sentences) puts its label above and reads left to right. */
   table.text-left:not([data-matrix]) td.cell-stack {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.25rem;
     text-align: left !important;
   }
-  /* A cell with no heading (an action link) sits on its own line, on the right. */
-  table.text-left:not([data-matrix]) td[data-label=""] {
-    justify-content: flex-end;
+  table.text-left:not([data-matrix]) td.cell-stack::before {
+    float: none;
+    display: block;
+    max-width: none;
+    margin: 0 0 0.25rem;
   }
   /* Inputs inside a card keep a comfortable width. */
   table.text-left:not([data-matrix]) td input,
@@ -1288,6 +1298,35 @@ table.text-left thead th {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--ink-soft);
+  }
+}
+
+/* ---- Phone touch targets and small text ----
+   Links and buttons were often 24px tall; a thumb needs about 40. Text under 12px is lifted to 12px. */
+@media (max-width: 767px) {
+  a.min-h-6,
+  button.min-h-6 {
+    min-height: 2.5rem;
+  }
+  button.min-w-6 {
+    min-width: 2.5rem;
+  }
+  /* A checkbox on its own in a header: grow its tap area without moving anything. */
+  label:has(> input[type="checkbox"]:only-child) {
+    padding: 0.625rem;
+    margin: -0.625rem;
+  }
+  .text-\[0\.6875rem\] {
+    font-size: 0.75rem;
+  }
+}
+
+@layer components {
+  @media (max-width: 767px) {
+    .btn {
+      min-height: 2.5rem !important;
+      min-width: 2.5rem;
+    }
   }
 }
 

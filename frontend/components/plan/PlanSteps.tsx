@@ -8,7 +8,7 @@ export function PlanSteps({ plan, canEdit, onTab }: { plan: Plan; canEdit: boole
 
   return (
     <nav aria-label="Planning steps" className="mb-6">
-      <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <ol className="-mx-1 flex snap-x scroll-px-1 gap-3 overflow-x-auto px-1 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
         {[
           { n: 1, title: "Upload orders", body: canEdit ? <Link className={link} href="/scheduler/upload">Upload the monthly Excel</Link> : "Planner uploads the month" },
           { n: 2, title: "Review parts", body: <Link className={link} href="/masters/parts">Parts and routes</Link> },
@@ -16,7 +16,7 @@ export function PlanSteps({ plan, canEdit, onTab }: { plan: Plan; canEdit: boole
           { n: 4, title: "Run planning", body: <span className={plan.stale ? "font-semibold text-ember-ink" : "text-ink-soft"}>{plan.stale ? "Stale: run planning" : "Up to date"}</span>, state: plan.stale ? "alert" : "done" },
           { n: 5, title: "Read the plans", body: <span><button type="button" className={link} onClick={() => onTab("mould")}>Mould plan</button> · <button type="button" className={link} onClick={() => onTab("melt")}>Melt plan</button></span> },
         ].map((s, i, all) => (
-          <li key={s.n} className="panel relative flex items-start gap-3 px-3.5 py-3">
+          <li key={s.n} className="panel relative flex min-w-[15.5rem] shrink-0 snap-start items-start gap-3 px-3.5 py-3 sm:min-w-0">
             <span className="step-num" data-state={s.state}>{s.n}</span>
             <span className="text-sm leading-snug">
               <span className="block font-display text-[0.9375rem] font-semibold">{s.title}</span>
