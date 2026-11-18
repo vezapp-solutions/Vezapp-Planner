@@ -1,5 +1,8 @@
 // Same-origin API client. Auth lives in httpOnly cookies, so there is no token handling here.
 // A 401 triggers one silent refresh and a retry before the caller sees the failure.
+// A sleeping server (Render's free plan) is handled in `guarded`: wait for it to wake, then carry on.
+
+import { checkWhySlow, isFromApi, isHostFailure, markAwake, waitUntilAwake } from "./server-status";
 
 export class ApiError extends Error {
   constructor(
@@ -20,12 +23,55 @@ export function setActingCompany(id: number | null) {
   actingCompanyId = id;
 }
 
+/** A request that takes this long makes us check whether the server is the reason. */
+const SLOW_AFTER_MS = 5000;
+
+/**
+ * Send a request and cope with a sleeping server. If the host answers with an error our API did not write (or
+ * not at all), the server is asleep or starting: show the "waking up" message, ask until it answers, then send
+ * the request again. A request that only changes data is repeated just when the server cannot have received
+ * it, so nothing is ever saved twice.
+ */
+async function guarded(run: () => Promise<Response>, safeToRepeat: boolean): Promise<Response> {
+  const slow = setTimeout(() => void checkWhySlow(), SLOW_AFTER_MS);
+  let woke = false;
+  try {
+    for (;;) {
+      let response: Response | null = null;
+      try {
+        response = await run();
+      } catch (error) {
+        // The person's own connection is down, or we already waited and it still fails: say so.
+        if (woke || (typeof navigator !== "undefined" && navigator.onLine === false)) throw error;
+      }
+      if (response && !isHostFailure(response)) {
+        if (isFromApi(response)) markAwake();
+        return response;
+      }
+      if (response && woke) return response; // awake, yet the host still reports an error: pass it on
+      if (!(await waitUntilAwake())) {
+        throw new ApiError(503, "The server is taking longer than usual to start. Please try again in a minute.");
+      }
+      woke = true;
+      // A request that timed out on the way may still have reached the server, so do not run it twice.
+      const mayHaveArrived = !response || response.status === 504;
+      if (!safeToRepeat && mayHaveArrived) {
+        throw new ApiError(503, "The server was asleep and has just woken up. Please try that again.");
+      }
+    }
+  } finally {
+    clearTimeout(slow);
+  }
+}
+
 function request(path: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   for (const [key, value] of Object.entries(CLIENT_HEADER)) headers.set(key, value);
   if (actingCompanyId) headers.set("X-Company-Id", String(actingCompanyId));
-  return fetch(`/api/v1${path}`, { ...init, credentials: "same-origin", headers });
+  const method = (init.method ?? "GET").toUpperCase();
+  const safe = method === "GET" || method === "HEAD" || path.startsWith("/auth/");
+  return guarded(() => fetch(`/api/v1${path}`, { ...init, credentials: "same-origin", headers }), safe);
 }
 
 let refreshing: Promise<boolean> | null = null;
@@ -100,7 +146,7 @@ export async function upload<T>(path: string, form: FormData): Promise<T> {
   const send = () => {
     const headers = new Headers(CLIENT_HEADER);
     if (actingCompanyId) headers.set("X-Company-Id", String(actingCompanyId));
-    return fetch(`/api/v1${path}`, { method: "POST", body: form, credentials: "same-origin", headers });
+    return guarded(() => fetch(`/api/v1${path}`, { method: "POST", body: form, credentials: "same-origin", headers }), false);
   };
   let response = await send();
   if (response.status === 401 && (await refreshSession())) response = await send();
@@ -113,12 +159,10 @@ export async function upload<T>(path: string, form: FormData): Promise<T> {
 export async function download(path: string, filename: string, form?: FormData): Promise<void> {
   const headers = new Headers(CLIENT_HEADER);
   if (actingCompanyId) headers.set("X-Company-Id", String(actingCompanyId));
-  const response = await fetch(`/api/v1${path}`, {
-    method: form ? "POST" : "GET",
-    body: form,
-    credentials: "same-origin",
-    headers,
-  });
+  const response = await guarded(
+    () => fetch(`/api/v1${path}`, { method: form ? "POST" : "GET", body: form, credentials: "same-origin", headers }),
+    true, // building a report changes nothing, so repeating it is safe
+  );
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     throw new ApiError(response.status, messageFrom(body, response.status), body);

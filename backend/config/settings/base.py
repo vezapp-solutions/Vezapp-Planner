@@ -92,6 +92,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.core.middleware.AuditContextMiddleware",
+    "apps.core.middleware.ApiMarkerMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

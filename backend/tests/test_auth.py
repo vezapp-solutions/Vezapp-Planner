@@ -10,6 +10,12 @@ def test_health_is_public(db, anon_client):
     assert response.json()["app"] == settings.APP_NAME == "Vezapp Planner"
 
 
+def test_every_api_response_carries_the_app_marker(db, anon_client):
+    # The web app uses this header to tell a sleeping host from an error the app itself returned.
+    assert anon_client.get("/api/v1/health")["X-Vezapp-API"] == "1"
+    assert anon_client.get("/api/v1/no-such-route")["X-Vezapp-API"] == "1"  # even a 404
+
+
 def test_login_sets_httponly_cookies_and_returns_profile(anon_client, users):
     response = anon_client.post(
         "/api/v1/auth/login", {"username": "a_planner", "password": PASSWORD}, format="json"

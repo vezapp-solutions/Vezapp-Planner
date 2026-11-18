@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Caveat, Instrument_Sans, JetBrains_Mono } from "ne
 import type { ReactNode } from "react";
 
 import { ResponsiveTables } from "@/components/ResponsiveTables";
+import { ServerWaking } from "@/components/ServerWaking";
 import { Tooltips } from "@/components/Tooltips";
 import { APP_NAME } from "@/lib/constants";
 
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {children}
         <Tooltips />
         <ResponsiveTables />
+        <ServerWaking />
       </body>
     </html>
   );
