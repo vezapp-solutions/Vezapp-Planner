@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { DatePicker } from "@/components/ui/DatePicker";
+import { TimePicker } from "@/components/ui/TimePicker";
 import { Select } from "@/components/ui/Select";
 
 export type Option = { value: string | number; label: string };
@@ -208,6 +209,16 @@ export function RecordForm({
                 {f.hint && !error && <p className="mt-1 text-xs text-ink-soft">{f.hint}</p>}
                 {error && <p className="mt-1 text-sm text-danger">{error}</p>}
               </div>
+            );
+          } else if (f.type === "time") {
+            control = (
+              <TimePicker
+                {...common}
+                value={String(value)}
+                onChange={(e) => set(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                clearable={!f.required}
+              />
             );
           } else if (f.type === "date" || f.type === "datetime") {
             control = (
