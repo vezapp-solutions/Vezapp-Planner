@@ -543,6 +543,52 @@ button:disabled,
     radial-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1.2px);
   background-size: auto, auto, 22px 22px;
   background-repeat: no-repeat, no-repeat, repeat;
+  position: relative;
+  isolation: isolate; /* so the two decoration layers below can sit behind the page without leaving it */
+}
+
+/* Behind everything, anchored to the window: a very faint Vezapp V across the left half of the page, and
+   a few soft cyan glows. They never scroll with the content and never catch a click. */
+.canvas::before,
+.canvas::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+}
+.canvas::before {
+  top: 50%;
+  left: -7vw;
+  width: min(66vw, 62rem);
+  aspect-ratio: 81 / 64;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--link) 70%, var(--brand)));
+  -webkit-mask: url("/brand/vezapp-v-mask.png") center / contain no-repeat;
+  mask: url("/brand/vezapp-v-mask.png") center / contain no-repeat;
+  opacity: 0.06;
+}
+:root[data-theme="dark"] .canvas::before {
+  opacity: 0.05;
+}
+.canvas::after {
+  inset: 0;
+  background:
+    radial-gradient(46rem 34rem at 6% 62%, color-mix(in srgb, var(--brand) 15%, transparent), transparent 70%),
+    radial-gradient(38rem 26rem at 100% 100%, color-mix(in srgb, var(--brand) 12%, transparent), transparent 70%),
+    radial-gradient(30rem 22rem at 55% -4rem, color-mix(in srgb, var(--brand) 9%, transparent), transparent 70%);
+}
+/* On a phone the V is nearly as wide as the screen, so it reads as a watermark and does not shout. */
+@media (max-width: 640px) {
+  .canvas::before {
+    left: -22vw;
+    width: 112vw;
+    opacity: 0.06;
+  }
+  .canvas::after {
+    background:
+      radial-gradient(26rem 22rem at 0% 60%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%),
+      radial-gradient(22rem 18rem at 100% 100%, color-mix(in srgb, var(--brand) 11%, transparent), transparent 70%);
+  }
 }
 
 /* Page content settles in, one block after another. */
@@ -863,7 +909,8 @@ button:disabled,
   position: sticky;
   top: 0;
   z-index: 40;
-  background: linear-gradient(var(--ground) 62%, transparent);
+  /* A light veil so the page text stays readable when it scrolls under the bar, thin enough that the V behind shows through. */
+  background: linear-gradient(color-mix(in srgb, var(--ground) 55%, transparent) 55%, transparent);
 }
 .pill-bar {
   background: var(--pill);
