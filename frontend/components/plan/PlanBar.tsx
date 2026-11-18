@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Stat, StatRow } from "@/components/Stat";
 import { FormErrorLine } from "@/components/States";
 import { ApiError, post } from "@/lib/api";
+import { riskShare } from "@/lib/plan-utils";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import type { Page, Plan } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
@@ -49,6 +50,7 @@ export function PlanBar({
   const out = plan.summary.excluded ?? { covered: 0, cannot_plan: 0 };
   const atRisk = (by.at_risk ?? 0) + (by.unscheduled ?? 0);
   const onTrack = Math.max(0, (plan.summary.lines ?? 0) - atRisk);
+  const risk = riskShare(atRisk, plan.summary.lines ?? 0);
 
   return (
     <section aria-label="Plan status" className="mb-5 space-y-4">
@@ -93,7 +95,7 @@ export function PlanBar({
       <div aria-label="Orders by state" role="group">
         <StatRow>
           <Stat label="On track" value={formatNumber(onTrack)} hint="planned and on time" tone="ok" />
-          <Stat label="At risk" value={formatNumber(atRisk)} hint={by.tight ? `${by.tight} more are tight` : "cannot meet the date"} tone={atRisk ? "danger" : "ok"} />
+          <Stat label="At risk" value={formatNumber(atRisk)} hint={by.tight ? `${by.tight} more are tight` : "cannot meet the date"} tone={atRisk ? "danger" : "ok"} badge={risk.badge} alert={risk.level === "alert"} />
           <Stat label="Covered by stock" value={formatNumber(out.covered)} hint="nothing to make" tone="brand" />
           <Stat label="Cannot plan" value={formatNumber(out.cannot_plan)} hint="missing master data" tone={out.cannot_plan ? "warn" : "plain"} />
         </StatRow>

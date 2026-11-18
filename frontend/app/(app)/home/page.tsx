@@ -9,7 +9,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/States";
 import { CapacityStrip } from "@/components/plan/CapacityStrip";
 import { addDays, countLabel, formatDate, formatNumber, formatWeekday, todayInIndia } from "@/lib/format";
 import { homeInsights } from "@/lib/insights";
-import { HEAT_STYLE, heatLevel, holdingSummary, percent, slackLabel, slackWords } from "@/lib/plan-utils";
+import { HEAT_STYLE, heatLevel, holdingSummary, percent, riskShare, slackLabel, slackWords } from "@/lib/plan-utils";
 import { useSession } from "@/lib/store";
 import { ROLE_LABEL, type BottleneckDay, type DayView, type InsightList, type Page, type Plan, type PlanLine, type Plant } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
@@ -184,6 +184,8 @@ function PlanSection() {
       </Panel>
     );
   }
+  const atRisk = (plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0);
+  const risk = riskShare(atRisk, plan.summary.lines ?? 0);
   return (
     <div className="space-y-6">
       {plan.stale && plan.status === "draft" && (
@@ -195,7 +197,7 @@ function PlanSection() {
       <StatRow>
         <Stat label="Plan" value={`v${plan.version}`} hint={plan.status === "draft" ? (plan.stale ? "draft, out of date" : "draft, up to date") : "confirmed baseline"} tone={plan.stale ? "ember" : "brand"} />
         <Stat label="Orders planned" value={formatNumber(plan.summary.lines ?? 0)} hint="open orders with a balance" tone="plain" />
-        <Stat label="At risk" value={formatNumber((plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0))} hint="cannot meet the dispatch date" tone={(plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0) ? "danger" : "ok"} />
+        <Stat label="At risk" value={formatNumber(atRisk)} hint="cannot meet the dispatch date" tone={atRisk ? "danger" : "ok"} badge={risk.badge} alert={risk.level === "alert"} />
         <Stat label="Bottleneck" value={plan.bottleneck ? plan.bottleneck.code : "–"} hint="the machine holding the plan back" tone="ember" />
       </StatRow>
       <div className="grid gap-6 md:grid-cols-2">

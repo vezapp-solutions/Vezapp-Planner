@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DAY_MS, capacityLevel, clip, heatLevel, holdingSummary, percent, placeResourceBars, slackLabel, slackWords, xOf } from "./plan-utils";
+import { DAY_MS, capacityLevel, clip, heatLevel, holdingSummary, percent, placeResourceBars, riskShare, slackLabel, slackWords, xOf } from "./plan-utils";
 import type { GanttBar } from "./types";
 
 describe("heatLevel", () => {
@@ -106,5 +106,23 @@ describe("slackLabel and slackWords", () => {
     expect(slackWords(3)).toBe("3 working days spare");
     expect(slackWords(0)).toBe("Ships on the internal due date");
     expect(slackWords(null)).toBe("No estimate");
+  });
+});
+
+describe("riskShare", () => {
+  it("is quiet when nothing is late or nothing is planned", () => {
+    expect(riskShare(0, 21)).toEqual({ share: 0, badge: null, level: "none" });
+    expect(riskShare(5, 0)).toEqual({ share: 0, badge: null, level: "none" });
+  });
+
+  it("shows a ratio for a few late orders and raises an alert from a quarter", () => {
+    expect(riskShare(2, 21)).toMatchObject({ badge: "10% of open orders", level: "watch" });
+    expect(riskShare(5, 21).level).toBe("watch"); // 24%
+    expect(riskShare(6, 24)).toMatchObject({ badge: "25% of open orders", level: "alert" });
+    expect(riskShare(19, 21)).toMatchObject({ badge: "90% of open orders", level: "alert" });
+  });
+
+  it("never reports more than all of the orders", () => {
+    expect(riskShare(30, 21)).toMatchObject({ badge: "100% of open orders", level: "alert" });
   });
 });

@@ -134,3 +134,20 @@ export function slackWords(days: number | null | undefined): string {
   const n = Math.abs(days);
   return `${n} working ${n === 1 ? "day" : "days"} ${days < 0 ? "late" : "spare"}`;
 }
+
+/** How much of the work is late, and how loudly the At risk tile should say so. */
+export interface RiskShare {
+  /** 0 to 1; 0 when there is nothing planned. */
+  share: number;
+  /** "90% of open orders", or null when nothing is late. */
+  badge: string | null;
+  /** none: nothing late. watch: a few late, shown with a ratio. alert: a quarter or more, so the whole tile is tinted. */
+  level: "none" | "watch" | "alert";
+}
+
+/** The share of planned orders that will miss their date. A quarter or more turns the tile into an alert. */
+export function riskShare(atRisk: number, planned: number): RiskShare {
+  if (atRisk <= 0 || planned <= 0) return { share: 0, badge: null, level: "none" };
+  const share = Math.min(1, atRisk / planned);
+  return { share, badge: `${Math.round(share * 100)}% of open orders`, level: share >= 0.25 ? "alert" : "watch" };
+}

@@ -12,13 +12,22 @@ const TONE: Record<StatTone, string> = {
   brand: "var(--link)",
 };
 
-/** One big figure with a quiet label above it and a coloured line below: the quick read at the top of a screen. */
-export function Stat({ label, value, hint, tone = "plain" }: { label: string; value: ReactNode; hint?: ReactNode; tone?: StatTone }) {
+/**
+ * One big figure with a quiet label above it and a coloured line below: the quick read at the top of a screen.
+ * `badge` is a small pill beside the label (a ratio such as "90% of open orders"); `alert` tints the whole tile red
+ * for the one figure that needs attention first.
+ */
+export function Stat({ label, value, hint, tone = "plain", badge, alert = false }: { label: string; value: ReactNode; hint?: ReactNode; tone?: StatTone; badge?: ReactNode; alert?: boolean }) {
   return (
-    <div className="kpi" style={{ ["--kpi-ink" as string]: TONE[tone] }}>
-      <p className="kpi-label">{label}</p>
+    <div className="kpi" data-alert={alert || undefined} style={{ ["--kpi-ink" as string]: TONE[tone] }}>
+      <div className="flex min-h-[1.625rem] flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <p className="kpi-label">{label}</p>
+        {badge && <span className="badge hidden bg-danger-wash text-danger sm:inline-flex">{badge}</span>}
+      </div>
       <p className="kpi-value">{value}</p>
       {hint && <p className="kpi-hint">{hint}</p>}
+      {/* On a narrow tile the ratio goes underneath, so the figures in a row still line up. */}
+      {badge && <span className="badge mt-3 bg-danger-wash text-danger sm:hidden">{badge}</span>}
     </div>
   );
 }

@@ -1589,3 +1589,29 @@ table.text-left thead th {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
+
+
+/* ---- A stat tile that needs attention first (components/Stat.tsx, alert): a red edge and a soft red wash ---- */
+.kpi[data-alert="true"] {
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--line));
+  background:
+    radial-gradient(18rem 9rem at 100% 0%, color-mix(in srgb, var(--danger) 16%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--danger) 9%, var(--surface)), var(--surface) 68%);
+  box-shadow:
+    0 1px 2px rgb(24 28 27 / 0.03),
+    0 18px 40px -26px color-mix(in srgb, var(--danger) 55%, transparent);
+}
+:root[data-theme="dark"] .kpi[data-alert="true"] {
+  border-color: color-mix(in srgb, var(--danger) 48%, var(--line));
+  background:
+    radial-gradient(18rem 9rem at 100% 0%, color-mix(in srgb, var(--danger) 22%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--danger) 13%, var(--surface)), var(--surface) 68%);
+}
+/* On an alert tile the ratio pill is solid red; its text flips with the theme so it stays readable. */
+.kpi[data-alert="true"] .badge {
+  background: var(--danger);
+  color: #ffffff;
+}
+:root[data-theme="dark"] .kpi[data-alert="true"] .badge {
+  color: #2b0f0d;
+}
