@@ -22,7 +22,7 @@ export function LinesTab({ plan }: { plan: Plan }) {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-end gap-3">
+      <div className="filters mb-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">Status</span>
           <Select className="field !min-h-10 !w-40" value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -34,7 +34,7 @@ export function LinesTab({ plan }: { plan: Plan }) {
           <span className="mb-1 block text-ink-soft">Month of internal date</span>
           <DatePicker mode="month" className="field !min-h-10 !w-44" value={month} onChange={(e) => setMonth(e.target.value)} />
         </label>
-        <label className="text-sm">
+        <label className="col-span-2 text-sm">
           <span className="mb-1 block text-ink-soft">Part</span>
           <input type="search" className="field !min-h-10 !w-44" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number or name" />
         </label>

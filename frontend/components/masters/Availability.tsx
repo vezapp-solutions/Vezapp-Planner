@@ -19,7 +19,7 @@ export function AvailabilityPreview({ resourceId, isFurnace, version }: { resour
     <section aria-labelledby="avail-title" className="space-y-2">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <h3 id="avail-title" className="font-display text-lg font-semibold">Available minutes, 7 days</h3>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="filter-inline flex items-center gap-2 text-sm">
           From
           <DatePicker className="field !min-h-9 !w-auto" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} clearable={false} />
         </label>

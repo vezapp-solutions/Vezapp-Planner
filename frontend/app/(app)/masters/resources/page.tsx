@@ -88,7 +88,7 @@ export default function ResourcesPage() {
           emptyHint="Add the core machines, moulding lines, furnaces and work centres the foundry plans against."
           wide
           toolbar={
-            <label className="flex items-center gap-2 text-sm">
+            <label className="filter-inline flex items-center gap-2 text-sm">
               Show
               <Select className="field !min-h-9 !w-auto" value={kindFilter} onChange={(e) => setKindFilter(e.target.value)}>
                 <option value="">All resources</option>

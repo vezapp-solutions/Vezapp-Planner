@@ -80,7 +80,7 @@ export default function PartsPage() {
           subtitle={(p) => `${p.part_number} · ${p.name}`}
           emptyHint="Each part needs its weights and mould data here. Its operation route is set on the next screen."
           toolbar={
-            <label className="flex items-center gap-2 text-sm">
+            <label className="filter-inline flex items-center gap-2 text-sm">
               Search
               <input type="search" className="field !min-h-9 !w-56" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Part number or name" />
             </label>

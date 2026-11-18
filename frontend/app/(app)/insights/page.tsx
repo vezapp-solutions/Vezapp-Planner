@@ -98,7 +98,7 @@ function InsightsView({ initialTab }: { initialTab: string }) {
                   {run.counts.resolved ? ` ${run.counts.resolved} earlier card${run.counts.resolved === 1 ? " is" : "s are"} gone.` : ""}
                 </p>
 
-                <div className="flex flex-wrap items-end gap-3">
+                <div className="filters flex flex-wrap items-end gap-3">
                   <label className="text-sm">
                     <span className="mb-1 block text-ink-soft">Severity</span>
                     <Select className="field !min-h-10 !w-40" value={severity} onChange={(e) => setSeverity(e.target.value)}>

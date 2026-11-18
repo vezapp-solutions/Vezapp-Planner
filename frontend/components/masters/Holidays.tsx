@@ -43,7 +43,7 @@ export function Holidays({ canEdit }: { canEdit: boolean }) {
       defaults={{ full_day: true }}
       emptyHint={`No holidays in ${year}. Planned capacity assumes every weekday in the weekly pattern is worked.`}
       toolbar={
-        <label className="flex items-center gap-2 text-sm">
+        <label className="filter-inline flex items-center gap-2 text-sm">
           Year
           <Select className="field !min-h-9 !w-auto" value={year} onChange={(e) => setYear(Number(e.target.value))}>
             {[thisYear - 1, thisYear, thisYear + 1, thisYear + 2].map((y) => (

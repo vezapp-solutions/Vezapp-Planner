@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Caveat, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { ResponsiveTables } from "@/components/ResponsiveTables";
 import { Tooltips } from "@/components/Tooltips";
 import { APP_NAME } from "@/lib/constants";
 
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-dvh">
         {children}
         <Tooltips />
+        <ResponsiveTables />
       </body>
     </html>
   );

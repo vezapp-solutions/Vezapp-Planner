@@ -79,14 +79,14 @@ export default function SchedulerPage() {
         )}
       </PageHeader>
 
-      <div className="mb-4 flex flex-wrap items-end gap-x-4 gap-y-3">
-        <div className="flex items-center gap-1" role="group" aria-label="Month">
+      <div className="filters mb-4 flex flex-wrap items-end gap-x-4 gap-y-3">
+        <div className="col-span-2 flex items-center gap-1" role="group" aria-label="Month">
           <button type="button" className="btn btn-quiet !min-h-10 !px-3" onClick={() => setMonth(shift(month, -1))} aria-label="Previous month">←</button>
           <label className="sr-only" htmlFor="month">Month</label>
           <DatePicker mode="month" id="month" className="field !min-h-10 !w-44" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} clearable={false} />
           <button type="button" className="btn btn-quiet !min-h-10 !px-3" onClick={() => setMonth(shift(month, 1))} aria-label="Next month">→</button>
         </div>
-        <label className="text-sm">
+        <label className="col-span-2 text-sm">
           <span className="mb-1 block text-ink-soft">Customer</span>
           <Select className="field !min-h-10 !w-48" value={customer} onChange={(e) => setCustomer(e.target.value)}>
             <option value="">All customers</option>
@@ -107,7 +107,7 @@ export default function SchedulerPage() {
             {Object.entries(LINE_STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
         </label>
-        <label className="text-sm">
+        <label className="col-span-2 text-sm">
           <span className="mb-1 block text-ink-soft">Part</span>
           <input type="search" className="field !min-h-10 !w-44" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number or name" />
         </label>

@@ -348,6 +348,8 @@ export interface AuditEntry {
   object_repr: string;
   before: Record<string, unknown> | null;
   after: Record<string, unknown> | null;
+  /** Names for the ids in the snapshots: { customer_id: { "3": "C-101 Aarav Pumps" } }. */
+  refs?: Record<string, Record<string, string>>;
   created_at: string;
 }
 

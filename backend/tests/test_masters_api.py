@@ -738,3 +738,19 @@ def test_saving_a_route_is_audited(login, users, example):
     client.put(url, full_payload(client.get(url).json(), fettling={"time_value": 4}), **J)
     entries = rows(client.get("/api/v1/audit-log?model_label=masters.PartOperation&action=update"))
     assert any(e["before"]["time_value"] != e["after"]["time_value"] for e in entries)
+
+
+def test_audit_entries_name_the_records_their_ids_point_to(login, users, company_a):
+    customer = Customer.objects.create(company=company_a, code="C9", name="Nine")
+    grade = Grade.objects.create(company=company_a, name="GG30")
+    client = login(users["a_admin"])
+    client.post(
+        "/api/v1/parts",
+        part_body(part_number="REF-1", grade=grade.pk, customer_links=[{"customer": customer.pk}]),
+        **J,
+    )
+    parts = rows(client.get("/api/v1/audit-log?model_label=masters.Part&action=create"))
+    assert parts[0]["refs"]["grade_id"] == {str(grade.pk): "GG30"}
+    links = rows(client.get("/api/v1/audit-log?model_label=masters.PartCustomer&action=create"))
+    assert links[0]["refs"]["customer_id"] == {str(customer.pk): "C9 Nine"}
+    assert links[0]["refs"]["part_id"][str(links[0]["after"]["part_id"])].startswith("REF-1")

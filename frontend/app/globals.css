@@ -1198,3 +1198,240 @@ table.text-left thead th {
     corner-shape: squircle;
   }
 }
+
+/* ======================================================================
+   Phones: tables become cards, and anything that still scrolls sideways says so;
+   (labels and hints come from components/ResponsiveTables.tsx)
+   ====================================================================== */
+@media (max-width: 767px) {
+  table.text-left:not([data-matrix]) {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+  /* The column headings stay for screen readers; each cell carries its own label instead. */
+  table.text-left:not([data-matrix]) thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  table.text-left:not([data-matrix]) tbody {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+  }
+  /* A panel that only holds the cards drops its own frame, so the cards are not boxed twice. */
+  .panel:has(> table.text-left:not([data-matrix])) {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  table.text-left:not([data-matrix]) tr {
+    display: block;
+    padding: 0.25rem 0.875rem;
+    background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--line) 75%, transparent) !important;
+    border-radius: var(--radius-card);
+  }
+  table.text-left:not([data-matrix]) td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0 !important;
+    text-align: right !important;
+    white-space: normal !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  }
+  table.text-left:not([data-matrix]) td:last-child {
+    border-bottom: 0;
+  }
+  table.text-left:not([data-matrix]) td[data-label]:not([data-label=""])::before {
+    content: attr(data-label);
+    flex: none;
+    max-width: 45%;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  /* A cell of running text (the audit log's sentences) puts its label above and reads left to right. */
+  table.text-left:not([data-matrix]) td.cell-stack {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    text-align: left !important;
+  }
+  /* A cell with no heading (an action link) sits on its own line, on the right. */
+  table.text-left:not([data-matrix]) td[data-label=""] {
+    justify-content: flex-end;
+  }
+  /* Inputs inside a card keep a comfortable width. */
+  table.text-left:not([data-matrix]) td input,
+  table.text-left:not([data-matrix]) td .field {
+    max-width: 11rem;
+  }
+
+  /* Grids that must scroll sideways say so in words. */
+  [data-more="right"]:has(table)::before,
+  [data-more="both"]:has(table)::before {
+    content: "Swipe sideways to see more columns \2192";
+    display: block;
+    position: sticky;
+    left: 0;
+    padding: 0.5rem 0.875rem 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+}
+
+/* ---- Phone filters: every field the same width, filling the row ----
+   Toolbars marked "filters" become a two-column grid on a phone; a long field (customer, part search) spans
+   both columns with col-span-2. "filter-inline" is a "label then field" pair that stacks. These are in the
+   components layer so they win over the fixed widths (!w-40, !w-44...) the desktop toolbars were given. */
+@layer components {
+  @media (max-width: 639px) {
+    .filters {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem !important;
+      align-items: end !important;
+    }
+    .filters > * {
+      min-width: 0;
+    }
+    .filters .field {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    /* The month row: arrows at the ends, the month field takes everything between them. */
+    .filters [role="group"][aria-label="Month"] {
+      width: 100%;
+    }
+    .filters [role="group"][aria-label="Month"] .field {
+      flex: 1 1 0%;
+      width: auto !important;
+      min-width: 0;
+    }
+    .filters [role="group"][aria-label="Rows by"] .btn {
+      flex: 1 1 0%;
+    }
+    .filter-inline {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.375rem !important;
+      width: 100%;
+    }
+    .filter-inline .field {
+      width: 100% !important;
+      max-width: none !important;
+    }
+  }
+}
+
+/* ---- Bottom sheet: drop-downs and calendars on a phone (components/ui/Popover.tsx) ---- */
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+  animation: sheet-fade 200ms ease;
+}
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: min(82dvh, 40rem);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  box-shadow: 0 -24px 60px -20px rgb(0 0 0 / 0.5);
+  animation: sheet-up 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sheet-handle {
+  flex: none;
+  padding: 0.75rem 1.25rem 0.25rem;
+  text-align: center;
+  cursor: grab;
+  touch-action: none; /* the handle drags the sheet, it does not scroll the page */
+}
+.sheet-handle:active {
+  cursor: grabbing;
+}
+.sheet-grip {
+  display: block;
+  width: 2.75rem;
+  height: 0.3125rem;
+  margin: 0 auto 0.625rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ink) 28%, transparent);
+}
+.sheet-title {
+  display: block;
+  padding-bottom: 0.5rem;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+.sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* The sheet is full width: ignore the widths and heights the floating panel was given. */
+  width: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-bottom: 1rem;
+}
+/* Bigger touch targets in a list of options. */
+.sheet-body [role="option"] {
+  min-height: 3rem;
+  font-size: 1rem;
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@supports (corner-shape: squircle) {
+  .sheet {
+    corner-shape: squircle;
+  }
+}
+
+/* A fading edge on the side that has more to see (tab bars, filter chips, grids). */
+[data-more="right"] {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 2.75rem), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 2.75rem), transparent);
+}
+[data-more="left"] {
+  -webkit-mask-image: linear-gradient(270deg, #000 calc(100% - 2.75rem), transparent);
+  mask-image: linear-gradient(270deg, #000 calc(100% - 2.75rem), transparent);
+}
+[data-more="both"] {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 2.25rem, #000 calc(100% - 2.75rem), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 2.25rem, #000 calc(100% - 2.75rem), transparent);
+}

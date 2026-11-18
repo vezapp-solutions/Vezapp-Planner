@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Explain, Issues } from "@/components/Explain";
 import { FormError } from "@/components/forms";
 import { MachineChoice } from "@/components/masters/MachineChoice";
-import { ApiError, post, put } from "@/lib/api";
+import { ApiError, errorText, post, put } from "@/lib/api";
 import { formatNumber } from "@/lib/format";
 import { usePlanningConfig } from "@/lib/planning-config";
 import { nextStep, opTitle } from "@/lib/machining";
@@ -365,20 +365,25 @@ function OpCard({
   );
 }
 
-/** Parse the nested 400 the route endpoints send: { operations: [ {field: [msg]}, ... ] }. */
+/**
+ * Parse the nested 400 the route endpoints send. The server may key the per-step errors by position
+ * ({ operations: { "6": { time_value: [...] } } }) or send a list ({ operations: [ {}, { time_value: [...] } ] }).
+ */
 function opErrors(err: unknown): { byIndex: Record<number, Record<string, string>>; general: string | null } {
   const out: Record<number, Record<string, string>> = {};
   if (!(err instanceof ApiError)) return { byIndex: out, general: "Could not reach the server." };
-  const list = (err.body as { operations?: unknown } | null)?.operations;
-  if (Array.isArray(list)) {
-    list.forEach((item, i) => {
-      if (item && typeof item === "object" && Object.keys(item).length) {
-        out[i] = Object.fromEntries(Object.entries(item as Record<string, unknown>).map(([k, v]) => [k, Array.isArray(v) ? v.join(" ") : String(v)]));
-      }
-    });
-    return { byIndex: out, general: Object.keys(out).length ? null : err.message };
+  const raw = (err.body as { operations?: unknown } | null)?.operations;
+  const entries: [number, unknown][] = Array.isArray(raw)
+    ? raw.map((item, i) => [i, item] as [number, unknown])
+    : raw && typeof raw === "object"
+      ? Object.entries(raw).map(([key, item]) => [Number(key), item] as [number, unknown])
+      : [];
+  for (const [i, item] of entries) {
+    if (Number.isInteger(i) && item && typeof item === "object" && !Array.isArray(item) && Object.keys(item).length) {
+      out[i] = Object.fromEntries(Object.entries(item as Record<string, unknown>).map(([k, v]) => [k, errorText(v)]));
+    }
   }
-  return { byIndex: out, general: err.message };
+  return { byIndex: out, general: Object.keys(out).length ? null : err.message };
 }
 
 function toPayload(ops: RouteOp[]) {

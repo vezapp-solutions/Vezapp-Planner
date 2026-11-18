@@ -60,7 +60,7 @@ function TypePanel({ type, days }: { type: MachineType; days: string[] }) {
   return (
     <Panel title={type.name} note={`${hours(type.free)} h free · ${percent(type.utilisation)} used`}>
       <div className="-mx-4 -my-4 overflow-x-auto">
-        <table className="w-full min-w-max text-left text-sm">
+        <table data-matrix className="w-full min-w-max text-left text-sm">
           <thead className="border-b border-line bg-sunken text-ink-soft">
             <tr>
               <th scope="col" className="sticky left-0 z-10 bg-sunken px-3 py-2 font-medium">Machine</th>

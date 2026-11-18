@@ -54,8 +54,8 @@ export function GanttTab({ plan }: { plan: Plan }) {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-end gap-3">
-        <div role="group" aria-label="Rows by" className="flex">
+      <div className="filters mb-4 flex flex-wrap items-end gap-3">
+        <div role="group" aria-label="Rows by" className="col-span-2 flex">
           {(["resource", "line"] as const).map((v) => (
             <button key={v} type="button" aria-pressed={by === v} onClick={() => setBy(v)} className={`btn !min-h-10 ${by === v ? "btn-primary" : "btn-quiet"}`}>
               By {v}
@@ -72,7 +72,7 @@ export function GanttTab({ plan }: { plan: Plan }) {
             {[7, 14, 28].map((d) => <option key={d} value={d}>{d} days</option>)}
           </Select>
         </label>
-        <ul className="flex flex-wrap gap-3 text-xs" aria-label="Colour key">
+        <ul className="col-span-2 flex flex-wrap gap-3 text-xs" aria-label="Colour key">
           {(Object.keys(STATUS_COLOR) as (keyof typeof STATUS_COLOR)[]).map((s) => (
             <li key={s} className="flex items-center gap-1.5">
               <span className="inline-block size-3 rounded-sm" style={{ background: STATUS_COLOR[s] }} /> {PLAN_STATUS_LABEL[s]}

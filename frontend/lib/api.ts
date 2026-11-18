@@ -40,12 +40,34 @@ function refreshSession(): Promise<boolean> {
   return refreshing;
 }
 
+/**
+ * Turn any error value the server sends (text, a list, a nested object such as { operations: { 6: { time_value:
+ * [...] } } }) into one readable sentence. A numbered key (a position in a list) is left out of the text.
+ */
+export function errorText(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(errorText).filter(Boolean).join(" ");
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, inner]) => {
+        const text = errorText(inner);
+        return /^\d+$/.test(key) || key === "non_field_errors" ? text : `${key}: ${text}`;
+      })
+      .filter(Boolean)
+      .join(" ");
+  }
+  return String(value);
+}
+
 function messageFrom(body: unknown, status: number): string {
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
     if (typeof record.detail === "string") return record.detail;
-    for (const [field, value] of Object.entries(record)) {
-      const text = Array.isArray(value) ? value.join(" ") : String(value);
+    const entries = Object.entries(record);
+    if (entries.length > 0) {
+      const [field, value] = entries[0];
+      const text = errorText(value);
       return field === "non_field_errors" ? text : `${field}: ${text}`;
     }
   }
@@ -116,7 +138,7 @@ export function fieldErrors(err: unknown): Record<string, string> {
   if (!(err instanceof ApiError) || !err.body || typeof err.body !== "object") return {};
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(err.body as Record<string, unknown>)) {
-    out[key] = Array.isArray(value) ? value.map(String).join(" ") : JSON.stringify(value);
+    out[key] = errorText(value);
   }
   return out;
 }

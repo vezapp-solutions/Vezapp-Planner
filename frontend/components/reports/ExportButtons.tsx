@@ -56,7 +56,7 @@ export function DateFilters({
   onCustomer?: (v: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="filters flex flex-wrap items-end gap-3">
       <label className="text-sm">
         <span className="mb-1 block text-ink-soft">From</span>
         <DatePicker className="field !min-h-10 !w-44" value={from} onChange={(e) => onFrom(e.target.value)} />
@@ -66,7 +66,7 @@ export function DateFilters({
         <DatePicker className="field !min-h-10 !w-44" value={to} onChange={(e) => onTo(e.target.value)} />
       </label>
       {onCustomer && (
-        <label className="text-sm">
+        <label className="col-span-2 text-sm">
           <span className="mb-1 block text-ink-soft">Customer code</span>
           <input className="field !min-h-10 !w-40" value={customer ?? ""} onChange={(e) => onCustomer(e.target.value.trim().toUpperCase())} placeholder="All customers" />
         </label>

@@ -61,7 +61,7 @@ export function LoadTab({ plan }: { plan: Plan }) {
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-end gap-3">
+      <div className="filters mb-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">From</span>
           <DatePicker className="field !min-h-10 !w-40" value={from} onChange={(e) => e.target.value && setFrom(e.target.value)} clearable={false} />
@@ -72,10 +72,10 @@ export function LoadTab({ plan }: { plan: Plan }) {
             {[7, 14, 21].map((d) => <option key={d} value={d}>{d} days</option>)}
           </Select>
         </label>
-        <label className="flex min-h-10 items-center gap-2 text-sm">
+        <label className="col-span-2 flex min-h-10 items-center gap-2 text-sm">
           <input type="checkbox" className="size-4 accent-[var(--action)]" checked={byShift} onChange={(e) => setByShift(e.target.checked)} /> Show each shift
         </label>
-        <ul className="flex flex-wrap gap-2 text-xs" aria-label="Colour key">
+        <ul className="col-span-2 flex flex-wrap gap-2 text-xs" aria-label="Colour key">
           {(["light", "busy", "high", "over"] as const).map((l) => (
             <li key={l} className="rounded-sm px-2 py-0.5" style={HEAT_STYLE[l]}>
               {{ light: "under 50%", busy: "50–84%", high: "85–99%", over: "100% or more" }[l]}

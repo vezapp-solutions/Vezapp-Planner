@@ -26,7 +26,7 @@ export default function MachineShopPage() {
   return (
     <>
       <PageHeader title="Machine shop" subtitle="Which machines are free, and what is planned on them" />
-      <div className="mb-5 flex flex-wrap items-end gap-3">
+      <div className="filters mb-5 flex flex-wrap items-end gap-3">
         <label className="text-sm">
           <span className="mb-1 block text-ink-soft">From</span>
           <DatePicker className="field !min-h-10 !w-44" value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -35,7 +35,7 @@ export default function MachineShopPage() {
           <span className="mb-1 block text-ink-soft">To</span>
           <DatePicker className="field !min-h-10 !w-44" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
-        <p className="text-sm text-ink-soft">Leave the dates empty for the next two weeks.</p>
+        <p className="col-span-2 text-sm text-ink-soft">Leave the dates empty for the next two weeks.</p>
       </div>
 
       {shop.loading ? (

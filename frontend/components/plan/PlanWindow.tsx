@@ -21,7 +21,7 @@ export function usePlanWindow(plan: Plan, days = 14) {
 
 export function PlanWindowControls({ window: w, shownFrom }: { window: ReturnType<typeof usePlanWindow>; shownFrom?: string }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end gap-3">
+    <div className="filters mb-4 flex flex-wrap items-end gap-3">
       <label className="text-sm">
         <span className="mb-1 block text-ink-soft">From</span>
         <DatePicker className="field !min-h-10 !w-40" value={w.from ?? shownFrom ?? todayInIndia()} onChange={(e) => e.target.value && w.setFrom(e.target.value)} clearable={false} />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState, PageHeader } from "@/components/States";
+import { describeAudit } from "@/lib/audit";
 import { formatDateTime } from "@/lib/format";
 import { useSession } from "@/lib/store";
 import type { AuditEntry, Page } from "@/lib/types";
@@ -11,8 +12,12 @@ import { Select } from "@/components/ui/Select";
 
 const MODELS = [
   ["", "Everything"],
+  ["scheduler.ScheduleLine", "Orders"],
+  ["plans.Plan", "Plans"],
+  ["scenarios.Scenario", "What-if scenarios"],
   ["masters.Part", "Parts"],
   ["masters.PartOperation", "Part routes"],
+  ["masters.PartCustomer", "Part-customer links"],
   ["masters.Customer", "Customers"],
   ["masters.Grade", "Grades"],
   ["masters.OperationType", "Operations"],
@@ -25,16 +30,21 @@ const MODELS = [
   ["accounts.User", "Users"],
 ];
 
-const ACTION = { create: "Created", update: "Changed", delete: "Deleted" } as const;
-
-function changes(entry: AuditEntry): string {
-  if (entry.action === "create") return "New record";
-  if (entry.action === "delete") return "Record removed";
-  const keys = new Set([...Object.keys(entry.before ?? {}), ...Object.keys(entry.after ?? {})]);
-  return [...keys]
-    .filter((k) => JSON.stringify(entry.before?.[k]) !== JSON.stringify(entry.after?.[k]))
-    .map((k) => `${k}: ${JSON.stringify(entry.before?.[k]) ?? "–"} → ${JSON.stringify(entry.after?.[k]) ?? "–"}`)
-    .join("; ");
+/** One change, in plain English: what happened in bold, then what exactly changed. */
+function Change({ entry }: { entry: AuditEntry }) {
+  const { headline, lines } = describeAudit(entry);
+  return (
+    <div className="space-y-1">
+      <p className="font-medium">{headline}</p>
+      {lines.length > 0 && (
+        <ul className="space-y-0.5 text-sm text-ink-soft">
+          {lines.map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function AuditPage() {
@@ -45,8 +55,8 @@ export default function AuditPage() {
 
   return (
     <>
-      <PageHeader title="Audit log" subtitle="Who changed what, and when">
-        <label className="flex items-center gap-2 text-sm">
+      <PageHeader title="Audit log" subtitle="Who changed what, and when, in plain words">
+        <label className="filter-inline flex items-center gap-2 text-sm">
           Show
           <Select className="field !min-h-9 !w-auto" value={model} onChange={(e) => setModel(e.target.value)}>
             {MODELS.map(([value, label]) => (
@@ -72,19 +82,15 @@ export default function AuditPage() {
               <tr>
                 <th scope="col" className="px-4 py-2 font-medium">When</th>
                 <th scope="col" className="px-4 py-2 font-medium">Who</th>
-                <th scope="col" className="px-4 py-2 font-medium">What</th>
-                <th scope="col" className="px-4 py-2 font-medium">Record</th>
-                <th scope="col" className="px-4 py-2 font-medium">Change</th>
+                <th scope="col" className="px-4 py-2 font-medium">What happened</th>
               </tr>
             </thead>
             <tbody>
               {log.data?.results.map((e) => (
                 <tr key={e.id} className="border-b border-line align-top last:border-0">
-                  <td className="whitespace-nowrap px-4 py-2 font-mono">{formatDateTime(e.created_at)}</td>
-                  <td className="px-4 py-2">{e.username || "system"}</td>
-                  <td className="px-4 py-2">{ACTION[e.action]}</td>
-                  <td className="px-4 py-2"><span className="text-ink-soft">{e.model_label.split(".")[1]}</span> {e.object_repr}</td>
-                  <td className="max-w-md break-words px-4 py-2 font-mono text-xs">{changes(e)}</td>
+                  <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">{formatDateTime(e.created_at)}</td>
+                  <td className="whitespace-nowrap px-4 py-3">{e.username || "system"}</td>
+                  <td className="cell-stack px-4 py-3"><Change entry={e} /></td>
                 </tr>
               ))}
             </tbody>
