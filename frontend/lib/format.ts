@@ -68,3 +68,8 @@ export function addDays(isoDate: string, days: number): string {
   d.setUTCDate(d.getUTCDate() + days);
   return todayInIndia(d);
 }
+
+/** "1 line", "21 lines", "0 lines": the count and its noun together, so a label never reads "21 line s". */
+export function countLabel(count: number, noun: string, plural = `${noun}s`): string {
+  return `${formatNumber(count)} ${count === 1 ? noun : plural}`;
+}

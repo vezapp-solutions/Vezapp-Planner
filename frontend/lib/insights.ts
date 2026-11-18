@@ -78,3 +78,12 @@ export function query(params: Record<string, string | undefined>): string {
     .map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`);
   return parts.length ? `?${parts.join("&")}` : "";
 }
+
+/**
+ * The cards for the home page's "Top insights". Late orders are already listed, one by one, in "Dispatch lines at
+ * risk" on the same page, so the at-risk cards are left out here: what remains is the trends and the anomalies
+ * (the on-time record, unrouted parts, capacity, the month forecast). The Insights screen still shows every card.
+ */
+export function homeInsights(cards: Insight[], limit = 5): Insight[] {
+  return cards.filter((c) => c.type !== "at_risk").slice(0, limit);
+}

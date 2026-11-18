@@ -6,9 +6,10 @@ import { SeverityBadge } from "@/components/insights/InsightCard";
 import { Panel } from "@/components/Panel";
 import { Stat, StatRow } from "@/components/Stat";
 import { EmptyState, ErrorState, LoadingState } from "@/components/States";
-import { Slack, StatusBadge } from "@/components/plan/StatusBadge";
-import { addDays, formatDate, formatDayMonth, formatNumber, formatWeekday, todayInIndia } from "@/lib/format";
-import { HEAT_STYLE, heatLevel, percent } from "@/lib/plan-utils";
+import { CapacityStrip } from "@/components/plan/CapacityStrip";
+import { addDays, countLabel, formatDate, formatNumber, formatWeekday, todayInIndia } from "@/lib/format";
+import { homeInsights } from "@/lib/insights";
+import { HEAT_STYLE, heatLevel, holdingSummary, percent, slackLabel, slackWords } from "@/lib/plan-utils";
 import { useSession } from "@/lib/store";
 import { ROLE_LABEL, type BottleneckDay, type DayView, type InsightList, type Page, type Plan, type PlanLine, type Plant } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
@@ -49,33 +50,13 @@ function Hero() {
   );
 }
 
-/** The busiest resource of each of the next 14 working days. */
+/** The busiest resource of each of the next 14 working days, as a row of bars. */
 function BottleneckStrip({ plan }: { plan: Plan }) {
   const strip = useApi<BottleneckDay[]>(`/plans/${plan.id}/bottlenecks?days=14&v=${encodeURIComponent(plan.calculated_at ?? "")}`);
   if (strip.loading) return <LoadingState rows={2} label="Loading the forecast" />;
   if (strip.error || !strip.data) return <ErrorState message={strip.error?.message ?? "Could not load."} onRetry={strip.reload} />;
   if (strip.data.length === 0) return <p className="text-sm text-ink-soft">No working days in the plan window.</p>;
-  return (
-    <>
-      <ol className="grid grid-cols-4 gap-px overflow-hidden rounded-sm border border-line bg-line sm:grid-cols-7 xl:grid-cols-14">
-        {strip.data.map((d) => (
-          <li key={d.date} className="bg-surface px-1 py-2 text-center" style={d.resource_code ? undefined : { color: "var(--ink-soft)" }}>
-            <p className="text-[0.6875rem] uppercase text-ink-soft">{formatWeekday(d.date, "short")}</p>
-            <p className="whitespace-nowrap font-mono text-xs">{formatDayMonth(d.date)}</p>
-            <p className="mt-1 truncate font-mono text-xs font-medium" title={d.resource_code ? `${d.resource_code}: ${percent(d.utilisation)} loaded` : "Nothing planned"}>
-              {d.resource_code ?? "–"}
-            </p>
-            {d.resource_code && (
-              <p className="mx-1 rounded-sm font-mono text-[0.6875rem]" style={HEAT_STYLE[heatLevel(d.utilisation)]}>
-                {percent(d.utilisation)}
-              </p>
-            )}
-          </li>
-        ))}
-      </ol>
-      <p className="mt-3 text-sm text-ink-soft">The most heavily loaded resource each day, with how full it is.</p>
-    </>
-  );
+  return <CapacityStrip days={strip.data} />;
 }
 
 function DayPanel({ plan, day, title }: { plan: Plan; day: string; title: string }) {
@@ -95,7 +76,7 @@ function DayPanel({ plan, day, title }: { plan: Plan; day: string; title: string
               <li key={w.op_code} className="flex items-baseline justify-between gap-3 py-1.5">
                 <span className="font-medium">{w.name}</span>
                 <span className="text-right text-ink-soft">
-                  {w.lines} line{w.lines > 1 ? "s" : ""} · <span className="font-mono text-ink">{formatNumber(w.qty)}</span> {UNIT[w.op_code] ?? "pcs"}
+                  {countLabel(w.lines, "line")} · <span className="font-mono text-ink">{formatNumber(w.qty)}</span> {UNIT[w.op_code] ?? "pcs"}
                 </span>
               </li>
             ))}
@@ -113,6 +94,18 @@ function DayPanel({ plan, day, title }: { plan: Plan; day: string; title: string
   );
 }
 
+/** The pill beside a late order: working days late (-) or spare (+) against the internal due date. */
+function VariancePill({ days }: { days: number | null }) {
+  if (days == null) return <span className="text-ink-soft">–</span>;
+  const tone = days < 0 ? "bg-danger-wash text-danger" : days < 2 ? "bg-warn-wash text-warn" : "bg-ok-wash text-ok";
+  return (
+    <span className={`badge font-mono ${tone}`} title={slackWords(days)} aria-label={slackWords(days)}>
+      {slackLabel(days)}
+    </span>
+  );
+}
+
+/** Order-level triage: which orders will miss their date, by how much, and what holds each one up. */
 function AtRisk({ plan }: { plan: Plan }) {
   const risky = useApi<Page<PlanLine>>(`/plans/${plan.id}/lines?status=at_risk&page_size=5&v=${encodeURIComponent(plan.calculated_at ?? "")}`);
   return (
@@ -124,21 +117,48 @@ function AtRisk({ plan }: { plan: Plan }) {
       ) : risky.data.results.length === 0 ? (
         <EmptyState title="No line is at risk">Every planned line is expected to ship on or before its internal date.</EmptyState>
       ) : (
-        <ul className="divide-y divide-line text-sm">
-          {risky.data.results.map((l) => (
-            <li key={l.id} className="py-2">
-              <div className="flex flex-wrap items-baseline gap-x-3">
-                <StatusBadge status={l.status} />
-                <span className="font-medium">{l.part_number}</span>
-                <span className="text-ink-soft">{l.customer_code}</span>
-                <span className="ml-auto font-mono">
-                  due {formatDate(l.internal_date)} · est. {l.est_dispatch_date ? formatDate(l.est_dispatch_date) : "–"} · <Slack days={l.slack_working_days} />
-                </span>
-              </div>
-              {l.holding_text && <p className="mt-0.5 text-xs text-ink-soft">{l.holding_text}</p>}
-            </li>
-          ))}
-        </ul>
+        <div className="-mx-2 overflow-x-auto">
+          <table className="w-full min-w-[40rem] text-left text-sm">
+            <thead>
+              <tr className="text-ink-soft">
+                <th scope="col" className="rounded-l-chip px-2 py-2 font-medium">Part and customer</th>
+                <th scope="col" className="px-2 py-2 font-medium">Internal due and estimated</th>
+                <th scope="col" className="px-2 py-2 font-medium" title="Working days between the estimated dispatch and the internal due date">Vs internal due</th>
+                <th scope="col" className="rounded-r-chip px-2 py-2 font-medium">Held up by</th>
+              </tr>
+            </thead>
+            <tbody>
+              {risky.data.results.map((l) => {
+                const held = holdingSummary(l.holding_op, l.holding_text);
+                return (
+                  <tr key={l.id} className="align-middle">
+                    <td className="border-b border-line px-2 py-2.5">
+                      <span className="block font-semibold">{l.part_number}</span>
+                      <span className="block max-w-[16rem] truncate text-xs text-ink-soft">
+                        <span className="font-mono">{l.customer_code}</span> {l.customer_name}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap border-b border-line px-2 py-2.5 font-mono text-xs">
+                      <span className="block"><span className="inline-block min-w-14 pr-2 font-sans text-ink-soft">int. due</span>{formatDate(l.internal_date)}</span>
+                      <span className="block"><span className="inline-block min-w-14 pr-2 font-sans text-ink-soft">est.</span>{l.est_dispatch_date ? formatDate(l.est_dispatch_date) : "–"}</span>
+                    </td>
+                    <td className="border-b border-line px-2 py-2.5"><VariancePill days={l.slack_working_days} /></td>
+                    <td className="border-b border-line px-2 py-2.5" title={l.holding_text || undefined}>
+                      {held.step ? (
+                        <>
+                          <span className="font-medium">{held.step}</span>
+                          {held.days && <span className="ml-1.5 font-mono text-xs text-ink-soft">{held.days}</span>}
+                        </>
+                      ) : (
+                        <span className="text-ink-soft">–</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
       <p className="mt-3 text-sm">
         <Link href="/plan" className="inline-flex min-h-6 items-center text-link underline-offset-2 hover:underline">Open the plan →</Link>
@@ -184,6 +204,7 @@ function PlanSection() {
       </div>
       <AtRisk plan={plan} />
       <Panel title="Bottleneck, next 14 working days" note={`plan v${plan.version}`}>
+        <p className="mb-4 text-sm text-ink-soft">The most heavily loaded resource each day, with how full it is.</p>
         <BottleneckStrip plan={plan} />
       </Panel>
     </div>
@@ -193,15 +214,16 @@ function PlanSection() {
 /** The five most important insight cards. */
 function TopInsights() {
   const list = useApi<InsightList>("/insights");
-  const top = list.data?.results.slice(0, 5) ?? [];
+  const top = homeInsights(list.data?.results ?? []);
   return (
     <Panel title="Top insights" note={list.data?.run?.plan_version ? `plan v${list.data.run.plan_version}` : undefined}>
+      <p className="mb-3 text-sm text-ink-soft">Trends and anomalies across the plant. Late orders are listed above.</p>
       {list.loading ? (
         <LoadingState label="Loading insights" rows={3} />
       ) : list.error ? (
         <ErrorState message={list.error.message} onRetry={list.reload} />
       ) : top.length === 0 ? (
-        <EmptyState title="No insights yet">Insight cards are produced every time a plan is calculated.</EmptyState>
+        <EmptyState title="No trends or anomalies to report">Late orders are listed above. Other insight cards are produced every time a plan is calculated.</EmptyState>
       ) : (
         <ol className="divide-y divide-line text-sm">
           {top.map((c) => (

@@ -53,7 +53,7 @@ export function LinesTab({ plan }: { plan: Plan }) {
           <table className="w-full min-w-[52rem] text-left text-sm">
             <thead className="border-b border-line bg-sunken text-ink-soft">
               <tr>
-                {["Status", "Internal date", "Estimated", "Spare", "Customer", "Part", "Qty", "Held up by"].map((h, i) => (
+                {["Status", "Internal date", "Estimated", "Vs internal date", "Customer", "Part", "Qty", "Held up by"].map((h, i) => (
                   <th key={h} scope="col" className={`px-3 py-2 font-medium ${i === 3 || i === 6 ? "text-right" : ""}`}>{h}</th>
                 ))}
               </tr>

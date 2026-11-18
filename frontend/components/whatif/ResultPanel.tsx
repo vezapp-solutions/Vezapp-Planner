@@ -79,7 +79,7 @@ export function ResultPanel({ result, ranAt, stale }: { result: ScenarioResult; 
               <table className="w-full min-w-[46rem] text-left text-sm">
                 <thead className="border-b border-line bg-sunken text-ink-soft">
                   <tr>
-                    {["Customer", "Part", "Internal date", "Estimated date", "Moved", "Spare days", "Status", "Held up by"].map((h, i) => (
+                    {["Customer", "Part", "Internal date", "Estimated date", "Moved", "Vs internal date", "Status", "Held up by"].map((h, i) => (
                       <th key={h} scope="col" className={`px-3 py-2 font-medium ${i === 5 ? "text-right" : ""}`}>{h}</th>
                     ))}
                   </tr>

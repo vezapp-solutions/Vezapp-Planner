@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DAY_MS, clip, heatLevel, percent, placeResourceBars, xOf } from "./plan-utils";
+import { DAY_MS, capacityLevel, clip, heatLevel, holdingSummary, percent, placeResourceBars, slackLabel, slackWords, xOf } from "./plan-utils";
 import type { GanttBar } from "./types";
 
 describe("heatLevel", () => {
@@ -63,5 +63,48 @@ describe("gantt geometry", () => {
     expect(clip(680, 50, 700)).toEqual({ x: 680, width: 20 });
     expect(clip(710, 20, 700)).toBeNull();
     expect(clip(-30, 20, 700)).toBeNull();
+  });
+});
+
+describe("capacityLevel", () => {
+  it("is gray with no load, then teal, amber and red from 70% and 90%", () => {
+    expect(capacityLevel(null)).toBe("none");
+    expect(capacityLevel(0)).toBe("none");
+    expect(capacityLevel(0.01)).toBe("cool");
+    expect(capacityLevel(0.699)).toBe("cool");
+    expect(capacityLevel(0.7)).toBe("warm");
+    expect(capacityLevel(0.899)).toBe("warm");
+    expect(capacityLevel(0.9)).toBe("hot");
+    expect(capacityLevel(1.4)).toBe("hot");
+  });
+});
+
+describe("holdingSummary", () => {
+  it("gives the step and the days from either wording the plan uses", () => {
+    expect(holdingSummary("moulding", "Moulding takes the longest (0.3 days from first to last piece).")).toEqual({ step: "Moulding", days: "0.3d" });
+    expect(holdingSummary("moulding", "Moulding held it up: its work waited about 0.3 days on average for capacity.")).toEqual({ step: "Moulding", days: "0.3d" });
+    expect(holdingSummary("melting", "Melting takes the longest (2 days from first to last piece).")).toEqual({ step: "Melting", days: "2d" });
+  });
+
+  it("returns only the step when the sentence has no figure, and nothing when there is no step", () => {
+    expect(holdingSummary("moulding", "")).toEqual({ step: "Moulding", days: null });
+    expect(holdingSummary("", "")).toEqual({ step: "", days: null });
+  });
+});
+
+describe("slackLabel and slackWords", () => {
+  it("puts the unit on the number so -4 is never ambiguous", () => {
+    expect(slackLabel(-4)).toBe("-4d");
+    expect(slackLabel(2)).toBe("+2d");
+    expect(slackLabel(0)).toBe("0d");
+    expect(slackLabel(null)).toBe("–");
+  });
+
+  it("says it in words for tooltips", () => {
+    expect(slackWords(-4)).toBe("4 working days late");
+    expect(slackWords(-1)).toBe("1 working day late");
+    expect(slackWords(3)).toBe("3 working days spare");
+    expect(slackWords(0)).toBe("Ships on the internal due date");
+    expect(slackWords(null)).toBe("No estimate");
   });
 });

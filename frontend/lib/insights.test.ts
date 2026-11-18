@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bySeverity, filterCards, pct, query, signedDays, summaryText, triggerText, typesPresent } from "./insights";
+import { bySeverity, filterCards, homeInsights, pct, query, signedDays, summaryText, triggerText, typesPresent } from "./insights";
 import type { Insight } from "./types";
 
 const card = (key: string, severity: Insight["severity"], type: Insight["type"] = "at_risk"): Insight => ({
@@ -56,4 +56,24 @@ describe("query", () => {
 
 describe("triggerText", () => {
   it("says why a run happened", () => expect(triggerText("plan")).toBe("after a plan was calculated"));
+});
+
+describe("homeInsights", () => {
+  const card = (key: string, type: Insight["type"]) => ({ key, type }) as Insight;
+  const cards = [
+    card("at_risk:summary", "at_risk"),
+    card("at_risk:line:1", "at_risk"),
+    card("at_risk:line:2", "at_risk"),
+    card("dispatch:overall", "dispatch_performance"),
+    card("data_health:no_route", "data_health"),
+    card("capacity:gap", "capacity_gap"),
+  ];
+
+  it("leaves out the late-order cards, which the page already lists order by order", () => {
+    expect(homeInsights(cards).map((c) => c.key)).toEqual(["dispatch:overall", "data_health:no_route", "capacity:gap"]);
+  });
+
+  it("keeps the ranked order and respects the limit", () => {
+    expect(homeInsights(cards, 2).map((c) => c.key)).toEqual(["dispatch:overall", "data_health:no_route"]);
+  });
 });

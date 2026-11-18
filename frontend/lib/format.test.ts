@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   addDays,
+  countLabel,
   formatDate,
   formatDateTime,
   formatKg,
@@ -56,5 +57,15 @@ describe("numbers and weights", () => {
   it("switches to tonnes from one tonne", () => {
     expect(formatWeight(950)).toBe("950 kg");
     expect(formatWeight(1000)).toBe("1 t");
+  });
+});
+
+describe("countLabel", () => {
+  it("joins the count and the noun, with the right plural", () => {
+    expect(countLabel(21, "line")).toBe("21 lines");
+    expect(countLabel(1, "line")).toBe("1 line");
+    expect(countLabel(0, "line")).toBe("0 lines");
+    expect(countLabel(1065, "mould")).toBe("1,065 moulds");
+    expect(countLabel(2, "bay", "bays")).toBe("2 bays");
   });
 });

@@ -85,3 +85,52 @@ export function clip(x: number, width: number, total: number): { x: number; widt
   const cx = Math.max(0, x);
   return { x: cx, width: Math.min(total, end) - cx };
 }
+
+/** How loaded a machine is, for the home page's capacity chart: red from 90%, amber from 70%, teal below, gray when idle. */
+export type CapacityLevel = "none" | "cool" | "warm" | "hot";
+
+export function capacityLevel(utilisation: number | null | undefined): CapacityLevel {
+  if (utilisation == null || utilisation <= 0) return "none";
+  if (utilisation < 0.7) return "cool";
+  if (utilisation < 0.9) return "warm";
+  return "hot";
+}
+
+export const CAPACITY_COLOR: Record<CapacityLevel, string> = {
+  none: "var(--line)",
+  cool: "color-mix(in srgb, var(--brand) 82%, var(--link))",
+  warm: "#e6a21a",
+  hot: "#d6453a",
+};
+
+export const CAPACITY_LABEL: Record<CapacityLevel, string> = {
+  none: "No load",
+  cool: "Under 70%",
+  warm: "70 to 89%",
+  hot: "90% or more",
+};
+
+/**
+ * What holds a late order up, short enough for a table cell: the step ("Moulding") and the days it costs ("0.3d").
+ * The days come from the sentence the plan wrote ("... (0.3 days from first to last piece)" or "... waited about
+ * 0.3 days ..."); when there is none, only the step is returned.
+ */
+export function holdingSummary(op: string, text: string): { step: string; days: string | null } {
+  const step = op ? op.charAt(0).toUpperCase() + op.slice(1) : "";
+  const found = /(\d+(?:\.\d+)?)\s*days?/i.exec(text ?? "");
+  return { step, days: found ? `${found[1]}d` : null };
+}
+
+/** Working days spare (+) or late (-) with its unit: "+2d", "-4d", "0d". Empty when there is no estimate. */
+export function slackLabel(days: number | null | undefined): string {
+  if (days == null) return "–";
+  return `${days > 0 ? "+" : ""}${days}d`;
+}
+
+/** The same, in words, for tooltips and screen readers: "4 working days late". */
+export function slackWords(days: number | null | undefined): string {
+  if (days == null) return "No estimate";
+  if (days === 0) return "Ships on the internal due date";
+  const n = Math.abs(days);
+  return `${n} working ${n === 1 ? "day" : "days"} ${days < 0 ? "late" : "spare"}`;
+}
