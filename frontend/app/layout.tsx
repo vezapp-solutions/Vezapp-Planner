@@ -1,27 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Semi_Condensed, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Caveat, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { Tooltips } from "@/components/Tooltips";
 import { APP_NAME } from "@/lib/constants";
 
 import "./globals.css";
 
-// Signage-style condensed face for headings (it echoes the logo's wide industrial lettering),
-// a plain humanist sans for reading, and a mono face for the numbers a planner scans.
-const barlow = Barlow_Semi_Condensed({
-  variable: "--font-barlow",
+// A characterful grotesque for headings and big numbers, a clean sans for reading and a mono face
+// for the figures a planner scans down a column.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  display: "swap",
 });
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
 });
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+// A handwriting face, used once: the "Ask AI" note under the assistant button.
+const caveat = Caveat({
+  variable: "--font-caveat",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["600"],
+  display: "swap",
+});
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -36,8 +44,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f2ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#111618" },
+    { media: "(prefers-color-scheme: light)", color: "#ece9e2" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1113" },
   ],
 };
 
@@ -49,12 +57,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${barlow.variable} ${plexSans.variable} ${plexMono.variable}`}
+      className={`${bricolage.variable} ${instrument.variable} ${jetbrains.variable} ${caveat.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        {children}
+        <Tooltips />
+      </body>
     </html>
   );
 }

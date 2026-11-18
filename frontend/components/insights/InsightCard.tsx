@@ -21,7 +21,7 @@ const BORDER: Record<Severity, string> = { critical: "border-l-danger", warning:
 const messageOf = (err: unknown) => (err instanceof ApiError ? err.message : "Could not reach the server.");
 
 export function SeverityBadge({ severity }: { severity: Severity }) {
-  return <span className={`whitespace-nowrap rounded-sm px-1.5 py-0.5 text-xs font-medium ${SEVERITY_STYLE[severity]}`}>{SEVERITY_LABEL[severity]}</span>;
+  return <span className={`badge ${SEVERITY_STYLE[severity]}`}>{SEVERITY_LABEL[severity]}</span>;
 }
 
 /** One ranked card: the line in plain English, the next step, and on request the trace, an explanation or a test. */

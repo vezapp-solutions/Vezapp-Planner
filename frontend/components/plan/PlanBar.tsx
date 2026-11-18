@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Stat, StatRow } from "@/components/Stat";
 import { FormErrorLine } from "@/components/States";
 import { ApiError, post } from "@/lib/api";
 import { formatDateTime, formatNumber } from "@/lib/format";
@@ -45,12 +46,15 @@ export function PlanBar({
 
   const by = plan.summary.by_status ?? {};
   const draft = plan.status === "draft";
+  const out = plan.summary.excluded ?? { covered: 0, cannot_plan: 0 };
+  const atRisk = (by.at_risk ?? 0) + (by.unscheduled ?? 0);
+  const onTrack = Math.max(0, (plan.summary.lines ?? 0) - atRisk);
 
   return (
-    <section aria-label="Plan status" className="mb-5 space-y-3">
-      <div className="panel flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3">
+    <section aria-label="Plan status" className="mb-5 space-y-4">
+      <div className="panel flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-3.5">
         <div>
-          <label htmlFor="plan-version" className="text-xs text-ink-soft">Plan</label>
+          <label htmlFor="plan-version" className="text-xs font-semibold uppercase tracking-wider text-ink-soft">Plan</label>
           <Select id="plan-version" className="field !min-h-9 !w-auto" value={plan.id} onChange={(e) => onSelect(Number(e.target.value))}>
             {(plans.data?.results ?? [plan]).map((p) => (
               <option key={p.id} value={p.id}>v{p.version} · {p.status === "draft" ? "Draft" : "Confirmed"}</option>
@@ -58,23 +62,12 @@ export function PlanBar({
           </Select>
         </div>
         <div className="text-sm">
-          <p className="text-xs text-ink-soft">Calculated</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">Calculated</p>
           <p className="font-mono">{plan.calculated_at ? formatDateTime(plan.calculated_at) : "–"}</p>
         </div>
         <div className="text-sm">
-          <p className="text-xs text-ink-soft">Planned orders</p>
-          <p className="font-mono">
-            {formatNumber(plan.summary.lines ?? 0)}
-            <span className="ml-2 text-xs text-ink-soft">
-              {by.at_risk ? `${by.at_risk} at risk` : "none at risk"}
-              {by.tight ? ` · ${by.tight} tight` : ""}
-              {by.unscheduled ? ` · ${by.unscheduled} not scheduled` : ""}
-            </span>
-          </p>
-        </div>
-        <div className="text-sm">
-          <p className="text-xs text-ink-soft">Bottleneck</p>
-          <p className="font-medium">{plan.bottleneck ? `${plan.bottleneck.code}` : "–"}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">Bottleneck</p>
+          <p className="font-display text-base font-semibold">{plan.bottleneck ? `${plan.bottleneck.code}` : "–"}</p>
         </div>
         {canEdit && (
           <div className="ml-auto flex flex-wrap gap-2">
@@ -97,9 +90,18 @@ export function PlanBar({
         )}
       </div>
 
+      <div aria-label="Orders by state" role="group">
+        <StatRow>
+          <Stat label="On track" value={formatNumber(onTrack)} hint="planned and on time" tone="ok" />
+          <Stat label="At risk" value={formatNumber(atRisk)} hint={by.tight ? `${by.tight} more are tight` : "cannot meet the date"} tone={atRisk ? "danger" : "ok"} />
+          <Stat label="Covered by stock" value={formatNumber(out.covered)} hint="nothing to make" tone="brand" />
+          <Stat label="Cannot plan" value={formatNumber(out.cannot_plan)} hint="missing master data" tone={out.cannot_plan ? "warn" : "plain"} />
+        </StatRow>
+      </div>
+
       {plan.stale && draft && (
-        <div role="status" className="flex flex-wrap items-center gap-3 rounded-md border border-warn bg-warn-wash px-4 py-2 text-sm">
-          <span className="font-medium text-warn">Stale: run planning again.</span>
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-xl border border-ember bg-ember-wash px-4 py-2.5 text-sm">
+          <span className="font-semibold text-ember-ink">Stale: run planning again.</span>
           <span>{plan.stale_reasons.join(" ")}</span>
           {canEdit && (
             <button type="button" className="btn btn-quiet !min-h-8 ml-auto" onClick={() => run("recalc")} disabled={busy !== null}>

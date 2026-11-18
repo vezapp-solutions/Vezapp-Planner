@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /*
   Palette is derived from the Vezapp logo (scripts/brand_assets.py):
@@ -6,45 +6,84 @@
   only; text and buttons use a darker teal that clears 4.5:1 (checked in docs/ASSUMPTIONS.md).
   Neutrals lean to moulding-sand warm grey in light mode and to a teal-tinted charcoal in dark.
 */
+/*
+  Redesign: a "foundry control room". The logo teal stays the brand colour; molten ember orange is the
+  heat accent (the tick on a page title, the step that needs you, the loud stat). The sidebar is always
+  graphite, in both modes, like a control panel; the working area is warm paper in light mode and a deep
+  teal-black in dark mode. Every text pair below clears 4.5:1.
+*/
 :root {
-  --ground: #f4f2ee;
-  --surface: #fbfaf8;
-  --sunken: #ebe8e2;
-  --line: #d6d2c9;
-  --ink: #232625;
-  --ink-soft: #565a57;
+  --ground: #ece9e2;
+  --surface: #fdfcfa;
+  --sunken: #e2ded5;
+  --line: #d2cdc1;
+  --ink: #181c1b;
+  --ink-soft: #565b57;
   --brand: #1ce4d4;
-  --link: #0b6f67;
-  --action: #0b6f67;
+  --link: #0a6b63;
+  --action: #0a6b63;
   --on-action: #ffffff;
-  --brand-wash: #dff3ef;
-  --danger: #a8261d;
-  --danger-wash: #f8e4e1;
+  --brand-wash: #d9f1ed;
+  --ember: #e8541a;
+  --ember-ink: #a33a0b;
+  --ember-wash: #fde6d8;
+  --danger: #b0261c;
+  --danger-wash: #f9e2df;
   --warn: #7a5200;
-  --warn-wash: #f6ead0;
-  --ok: #1a6a38;
-  --ok-wash: #def0e4;
+  --warn-wash: #f7ebcf;
+  --ok: #17673a;
+  --ok-wash: #dcefe2;
+  --side: #121719;
+  --side-raise: #1b2225;
+  --side-line: #263034;
+  --side-ink: #d6dfdc;
+  --side-soft: #8fa09b;
+  /* The floating bar: black in light mode, white in dark mode. */
+  --pill: #121719;
+  --pill-raise: #1f282b;
+  --pill-ink: #d6dfdc;
+  --pill-hover-ink: #ffffff;
+  --pill-line: rgb(255 255 255 / 0.12);
+  --pill-active: #fdfcfa;
+  --pill-active-ink: #181c1b;
+  --pill-ring: rgb(255 255 255 / 0.06);
+  --pill-shadow: rgb(0 0 0 / 0.55);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --ground: #111618;
-  --surface: #181e21;
-  --sunken: #0d1113;
-  --line: #2a3438;
-  --ink: #e6ecea;
-  --ink-soft: #9fabA8;
+  --ground: #0b1012;
+  --surface: #131a1d;
+  --sunken: #090d0f;
+  --line: #243034;
+  --ink: #e8eeec;
+  --ink-soft: #9aa9a6;
   --brand: #1ce4d4;
-  --link: #1ce4d4;
+  --link: #3df0e1;
   --action: #1ce4d4;
   --on-action: #04201d;
-  --brand-wash: #12302e;
+  --brand-wash: #0f302e;
+  --ember: #ff7a3d;
+  --ember-ink: #ff9a68;
+  --ember-wash: #3a1c0e;
   --danger: #ff8a80;
   --danger-wash: #3a1a18;
   --warn: #f0c060;
   --warn-wash: #33290f;
   --ok: #7fd49a;
   --ok-wash: #143321;
+  --side: #0e1315;
+  --side-raise: #172023;
+  --side-line: #222d31;
+  --pill: #f7f5f0;
+  --pill-raise: #e6e2d9;
+  --pill-ink: #3b423f;
+  --pill-hover-ink: #121719;
+  --pill-line: rgb(0 0 0 / 0.14);
+  --pill-active: #121719;
+  --pill-active-ink: #ffffff;
+  --pill-ring: rgb(255 255 255 / 0.5);
+  --pill-shadow: rgb(0 0 0 / 0.85);
   color-scheme: dark;
 }
 
@@ -66,11 +105,21 @@
   --color-warn-wash: var(--warn-wash);
   --color-ok: var(--ok);
   --color-ok-wash: var(--ok-wash);
-  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
-  --font-display: var(--font-barlow), var(--font-plex-sans), system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
-  --radius-sm: 3px;
-  --radius-md: 4px;
+  --color-ember: var(--ember);
+  --color-ember-ink: var(--ember-ink);
+  --color-ember-wash: var(--ember-wash);
+  --color-side: var(--side);
+  --color-side-raise: var(--side-raise);
+  --color-side-line: var(--side-line);
+  --color-side-ink: var(--side-ink);
+  --color-side-soft: var(--side-soft);
+  --font-sans: var(--font-instrument), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-instrument), system-ui, sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Print", cursive;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
 html {
@@ -176,13 +225,12 @@ button:disabled,
       0 1px 2px rgb(0 0 0 / 0.18),
       0 4px 10px -4px color-mix(in srgb, var(--action) 55%, transparent);
   }
+  /* Hover presses a button in, it does not lift it: a touch of inner padding and a soft black vignette. */
   .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06) saturate(1.05);
-    transform: translateY(-1px);
+    transform: scale(0.985);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.22),
-      0 2px 4px rgb(0 0 0 / 0.16),
-      0 8px 16px -6px color-mix(in srgb, var(--action) 60%, transparent);
+      inset 0 0 16px 1px rgb(0 0 0 / 0.26),
+      0 1px 2px rgb(0 0 0 / 0.18);
   }
   .btn-primary:active:not(:disabled) {
     filter: brightness(0.97);
@@ -208,10 +256,9 @@ button:disabled,
     box-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
   }
   .btn-quiet:hover:not(:disabled) {
-    background-color: var(--sunken);
-    border-color: var(--ink-soft);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px -4px rgb(0 0 0 / 0.18);
+    border-color: color-mix(in srgb, var(--brand) 70%, var(--ink-soft));
+    transform: scale(0.985);
+    box-shadow: inset 0 0 14px 1px color-mix(in srgb, var(--brand) 26%, transparent);
   }
   .btn-quiet:active:not(:disabled) {
     transform: translateY(0);
@@ -230,8 +277,8 @@ button:disabled,
   }
   .btn-danger:hover:not(:disabled) {
     background-color: var(--danger-wash);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--danger) 45%, transparent);
+    transform: scale(0.985);
+    box-shadow: inset 0 0 14px 1px rgb(0 0 0 / 0.14);
   }
   .btn-danger:active:not(:disabled) {
     transform: translateY(0);
@@ -348,12 +395,18 @@ button:disabled,
     cursor: not-allowed;
   }
 
-  /* Ruled "shift board" panel: a flat surface with a hairline, no shadow. */
+  /* A panel: a crisp card with a hairline and a soft, tinted shadow so it sits on the paper. */
   .panel {
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+    border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+    border-radius: 1.25rem;
+    box-shadow:
+      0 1px 2px rgb(24 28 27 / 0.03),
+      0 18px 40px -28px rgb(24 28 27 / 0.28);
+  }
+  :root[data-theme="dark"] .panel {
+    border-color: color-mix(in srgb, var(--line) 80%, transparent);
+    box-shadow: 0 18px 40px -28px rgb(0 0 0 / 0.85);
   }
 
   .skeleton {
@@ -466,4 +519,569 @@ button:disabled,
     opacity: 1;
     transform: none;
   }
+}
+
+/* ======================================================================
+   Redesign layer: shell, page header, stat tiles, badges, tabs, tables,
+   the planning stepper and the login scene. Imported by globals.css.
+   ====================================================================== */
+
+/* The working area: paper with a faint drafting grid and a wash of teal heat at the top. */
+.canvas {
+  background-color: var(--ground);
+  background-image:
+    radial-gradient(60rem 20rem at 90% -6rem, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%),
+    radial-gradient(40rem 16rem at -4rem 0, color-mix(in srgb, var(--ember) 9%, transparent), transparent 70%),
+    radial-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1.2px);
+  background-size: auto, auto, 22px 22px;
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+
+/* Page content settles in, one block after another. */
+/* "backwards", not "both": once the reveal ends it must leave no transform or opacity behind, or the page
+   block becomes the container of any full-window layer inside it (the expanded AI chat) and traps it under the header. */
+.rise > * {
+  animation: rise 460ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.rise > *:nth-child(2) {
+  animation-delay: 50ms;
+}
+.rise > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+.rise > *:nth-child(4) {
+  animation-delay: 150ms;
+}
+.rise > *:nth-child(5) {
+  animation-delay: 200ms;
+}
+.rise > *:nth-child(n + 6) {
+  animation-delay: 250ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer components {
+  /* ---- Side navigation (always graphite) ---- */
+  .nav-link {
+    position: relative;
+    display: flex;
+    min-height: 2.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+    border-radius: 0.625rem;
+    color: var(--side-ink);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition:
+      background-color 140ms ease,
+      color 140ms ease;
+  }
+  .nav-link:hover {
+    background: var(--side-raise);
+  }
+  .nav-link[data-active="true"] {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand) 18%, transparent),
+      color-mix(in srgb, var(--brand) 4%, transparent)
+    );
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .nav-link[data-active="true"]::before {
+    content: "";
+    position: absolute;
+    left: -0.75rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--brand);
+    box-shadow: 0 0 12px var(--brand);
+  }
+  .nav-link .nav-icon {
+    flex: none;
+    color: var(--side-soft);
+    transition: color 140ms ease;
+  }
+  .nav-link:hover .nav-icon,
+  .nav-link[data-active="true"] .nav-icon {
+    color: var(--brand);
+  }
+  .nav-link:focus-visible,
+  .nav-sub:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+  .nav-sub {
+    display: flex;
+    min-height: 2.25rem;
+    align-items: center;
+    margin-left: 1.375rem;
+    padding: 0 0.75rem 0 1.125rem;
+    border-left: 1px solid var(--side-line);
+    color: var(--side-soft);
+    font-size: 0.875rem;
+    transition:
+      color 140ms ease,
+      border-color 140ms ease;
+  }
+  .nav-sub:hover {
+    color: var(--side-ink);
+  }
+  .nav-sub[aria-current="page"] {
+    color: #ffffff;
+    border-left-color: var(--brand);
+    font-weight: 600;
+  }
+
+  /* ---- Stat tiles: a big figure with a quiet label ---- */
+  .kpi {
+    position: relative;
+    overflow: hidden;
+    padding: 1.375rem 1.5rem 1.25rem;
+    background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+    border-radius: 1.25rem;
+    box-shadow:
+      0 1px 2px rgb(24 28 27 / 0.03),
+      0 18px 40px -28px rgb(24 28 27 / 0.28);
+  }
+  :root[data-theme="dark"] .kpi {
+    border-color: color-mix(in srgb, var(--line) 80%, transparent);
+    box-shadow: 0 18px 40px -28px rgb(0 0 0 / 0.85);
+  }
+  .kpi-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .kpi-value {
+    margin-top: 0.625rem;
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-hint {
+    margin-top: 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--kpi-ink, var(--ink-soft));
+  }
+
+  /* ---- Badges: a pill with a status dot ---- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+  .badge::before {
+    content: "";
+    width: 0.4375rem;
+    height: 0.4375rem;
+    flex: none;
+    border-radius: 9999px;
+    background: currentColor;
+  }
+
+  /* ---- Tabs: a segmented track, the active tab lifts out of it ---- */
+  .seg {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding: 0.25rem;
+    background: var(--sunken);
+    border: 1px solid var(--line);
+    border-radius: 0.875rem;
+    scrollbar-width: none;
+  }
+  .seg::-webkit-scrollbar {
+    display: none;
+  }
+  .seg-tab {
+    flex: none;
+    min-height: 2.25rem;
+    padding: 0 0.875rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+  .seg-tab:hover {
+    color: var(--ink);
+  }
+  .seg-tab[aria-selected="true"] {
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow:
+      0 1px 2px rgb(24 28 27 / 0.12),
+      0 0 0 1px var(--line);
+  }
+  .seg-tab:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 35%, transparent);
+  }
+
+  /* ---- Tables: tracked small-caps headings, calm rows, a tinted hover ---- */
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  thead th {
+    background: var(--sunken);
+    color: var(--ink-soft);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  tbody tr {
+    transition: background-color 120ms ease;
+  }
+  tbody tr:hover {
+    background: color-mix(in srgb, var(--brand) 8%, transparent);
+  }
+
+  /* ---- Planning stepper ---- */
+  .step-num {
+    display: inline-flex;
+    height: 1.75rem;
+    width: 1.75rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: var(--ink);
+    color: var(--surface);
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+  .step-num[data-state="alert"] {
+    background: var(--ember);
+    color: #ffffff;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ember) 25%, transparent);
+  }
+  .step-num[data-state="done"] {
+    background: var(--brand);
+    color: #04201d;
+  }
+
+  /* ---- Page header ---- */
+  .page-tick {
+    display: block;
+    height: 4px;
+    width: 2.25rem;
+    margin-bottom: 0.625rem;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--ember), color-mix(in srgb, var(--ember) 60%, var(--brand)));
+  }
+}
+
+/* ---- Login scene ---- */
+.scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(34rem 26rem at 8% 108%, rgb(232 84 26 / 0.55), transparent 65%),
+    radial-gradient(40rem 30rem at 100% -10%, rgb(28 228 212 / 0.28), transparent 60%),
+    linear-gradient(160deg, #0c1214 0%, #121a1d 60%, #0d1315 100%);
+  color: #e8eeec;
+}
+.scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image: radial-gradient(rgb(255 255 255 / 0.12) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, transparent, #000 40%, #000 70%, transparent);
+}
+.scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.heat-bar {
+  transform-origin: bottom;
+  animation: heat-grow 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes heat-grow {
+  from {
+    transform: scaleY(0.05);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+
+/* ---- Floating pill navigation (wide screens) ---- */
+.float-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(var(--ground) 62%, transparent);
+}
+.pill-bar {
+  background: var(--pill);
+  border-radius: 9999px;
+  padding: 0.375rem;
+  box-shadow:
+    0 0 0 1px var(--pill-ring),
+    0 20px 44px -18px var(--pill-shadow),
+    0 4px 10px -4px rgb(0 0 0 / 0.3);
+}
+.pill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  padding: 0 0.9375rem;
+  border-radius: 9999px;
+  color: var(--pill-ink);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.pill-link:hover {
+  color: var(--pill-hover-ink);
+  background: var(--pill-raise);
+}
+.pill-link[data-active="true"] {
+  background: var(--pill-active);
+  color: var(--pill-active-ink);
+  font-weight: 600;
+}
+.pill-link:focus-visible,
+.pill-icon:focus-visible,
+.ask-btn:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.pill-icon {
+  display: inline-flex;
+  flex: none;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--pill-raise);
+  color: var(--pill-ink);
+  transition: color 150ms ease;
+}
+.pill-icon:hover {
+  color: var(--pill-hover-ink);
+  box-shadow: inset 0 0 10px 1px rgb(0 0 0 / 0.16);
+}
+
+/* Drop-down menus that hang from the pill (More, and the person). */
+.menu {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: 50;
+  min-width: 14.5rem;
+  padding: 0.375rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: 0 28px 56px -20px rgb(0 0 0 / 0.45);
+  animation: popover-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: top right;
+}
+.menu-item {
+  display: flex;
+  width: 100%;
+  min-height: 2.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.625rem;
+  font-size: 0.9375rem;
+  text-align: left;
+}
+.menu-item:hover {
+  background: var(--sunken);
+}
+.menu-item[aria-current="page"] {
+  background: var(--brand-wash);
+  font-weight: 600;
+}
+
+/* The Ask AI button sits on its own, outside the pill, with its name in a speech tag pointing at it. */
+.ask-btn {
+  display: inline-flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--action);
+  color: var(--on-action);
+  box-shadow: 0 12px 24px -10px var(--action);
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 160ms ease;
+}
+.ask-btn:hover {
+  transform: scale(0.96);
+  box-shadow:
+    inset 0 0 14px 1px rgb(0 0 0 / 0.26),
+    0 8px 18px -10px var(--action);
+}
+/* "Ask AI" written by hand under the button, with a hand-drawn arrow curling up to it (the Odoo style). */
+/* The note sits to the left of the button and a little lower: the words, then an arrow that arcs up and over into the button. */
+.ask-note {
+  position: absolute;
+  top: 0.125rem;
+  right: 100%;
+  width: 9.375rem;
+  height: 4.375rem;
+  color: var(--ember-ink);
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+.ask-note svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ask-note span {
+  position: absolute;
+  left: 0.625rem;
+  bottom: 0;
+  font-family: var(--font-hand);
+  font-size: 1.625rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transform: rotate(-6deg);
+}
+.ask-note[data-hidden="true"] {
+  opacity: 0;
+}
+
+/* The section tabs under the pill (Masters, Monthly Scheduler). */
+.subtab {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  padding: 0 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.subtab:hover {
+  color: var(--ink);
+  background: var(--sunken);
+}
+.subtab[aria-current="page"] {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow:
+    0 1px 2px rgb(24 28 27 / 0.1),
+    0 0 0 1px var(--line);
+}
+
+/* Data tables get more air between rows. */
+table.text-left tbody td {
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+}
+table.text-left thead th {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+/* ---- Tooltips (components/Tooltips.tsx): a small bubble that fades in beside whatever you point at ---- */
+.tooltip {
+  position: fixed;
+  z-index: 200;
+  max-width: 18rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: 0.625rem;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre-line;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.97);
+  transition:
+    opacity 140ms ease,
+    transform 170ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 14px 30px -12px rgb(0 0 0 / 0.5);
+}
+.tooltip[data-place="bottom"] {
+  transform: translateY(-4px) scale(0.97);
+}
+.tooltip[data-show="true"] {
+  opacity: 1;
+  transform: none;
+}
+.tooltip::after {
+  content: "";
+  position: absolute;
+  left: var(--arrow-x, 50%);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+.tooltip[data-place="top"]::after {
+  bottom: -0.25rem;
+}
+.tooltip[data-place="bottom"]::after {
+  top: -0.25rem;
 }

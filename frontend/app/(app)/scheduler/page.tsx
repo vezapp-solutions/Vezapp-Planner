@@ -25,10 +25,10 @@ const label = (month: string) => `${MONTHS[Number(month.slice(5)) - 1]} ${month.
 
 function Stat({ name, value, note }: { name: string; value: string; note?: string }) {
   return (
-    <div className="min-w-[7rem] flex-1 border-l-[3px] border-line px-3 py-1">
-      <dt className="text-xs text-ink-soft">{name}</dt>
-      <dd className="font-display text-2xl font-semibold leading-tight">{value}</dd>
-      {note && <p className="text-xs text-ink-soft">{note}</p>}
+    <div className="kpi min-w-[9rem] flex-1">
+      <dt className="kpi-label">{name}</dt>
+      <dd className="kpi-value">{value}</dd>
+      {note && <p className="kpi-hint">{note}</p>}
     </div>
   );
 }
@@ -119,7 +119,7 @@ export default function SchedulerPage() {
         ) : summary.error || !s ? (
           <ErrorState message={summary.error?.message ?? "Could not load totals."} onRetry={summary.reload} />
         ) : (
-          <dl className="flex flex-wrap gap-y-2">
+          <dl className="flex flex-wrap gap-4">
             <Stat name="Lines" value={formatNumber(s.lines)} />
             <Stat name="Pieces" value={formatNumber(s.pieces)} />
             <Stat name="Weight" value={formatTonnes(s.tonnes * 1000)} note="casting weight × quantity" />

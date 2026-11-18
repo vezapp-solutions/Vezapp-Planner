@@ -21,8 +21,8 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-dashed border-line px-4 py-6">
-      <p className="font-medium">{title}</p>
+    <div className="rounded-xl border border-dashed border-ink-soft/40 bg-sunken/50 px-5 py-7">
+      <p className="font-display text-lg font-semibold">{title}</p>
       {children && <p className="mt-1 max-w-prose text-sm text-ink-soft">{children}</p>}
       {action && <div className="mt-3">{action}</div>}
     </div>
@@ -70,10 +70,10 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-line pb-4">
-      <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-ink-soft">{subtitle}</p>}
+    <header className="mb-7 flex flex-wrap items-end justify-between gap-3">
+      <div className="min-w-0">
+        <h1 className="font-display text-[1.875rem] font-bold leading-tight tracking-tight sm:text-[2.25rem]">{title}</h1>
+        {subtitle && <p className="mt-1.5 max-w-3xl text-[0.9375rem] text-ink-soft">{subtitle}</p>}
       </div>
       {children}
     </header>

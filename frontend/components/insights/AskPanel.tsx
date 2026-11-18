@@ -251,7 +251,7 @@ export function AskPanel() {
                   type="button"
                   onClick={() => void send(s, s === SUMMARY)}
                   disabled={busy}
-                  className="group flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left text-sm font-medium transition duration-150 hover:-translate-y-0.5 hover:border-action hover:bg-brand-wash hover:shadow-md"
+                  className="group flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-left text-sm font-medium transition duration-150 hover:border-action hover:bg-brand-wash hover:shadow-[inset_0_0_14px_1px_rgb(28_228_212/0.26)]"
                 >
                   {s}
                   <svg {...icon} className="h-4 w-4 shrink-0 text-ink-soft transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-action"><path d="M4 10h12M11 5l5 5-5 5" /></svg>

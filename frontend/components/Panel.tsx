@@ -12,15 +12,15 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="panel">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-line px-4 py-2.5">
-        <h2 className="font-display text-lg font-semibold">{title}</h2>
+    <section className="panel overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-6 pb-1 pt-5">
+        <h2 className="font-display text-[1.0625rem] font-semibold tracking-tight">{title}</h2>
         <div className="flex items-center gap-3">
-          {note && <span className="font-mono text-xs text-ink-soft">{note}</span>}
+          {note && <span className="rounded-full bg-sunken px-3 py-1 font-mono text-xs text-ink-soft">{note}</span>}
           {actions}
         </div>
       </div>
-      <div className="p-4">{children}</div>
+      <div className="px-6 pb-6 pt-4">{children}</div>
     </section>
   );
 }

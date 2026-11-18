@@ -8,7 +8,7 @@ const STYLE: Record<PlanLineStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: PlanLineStatus }) {
-  return <span className={`whitespace-nowrap rounded-sm px-1.5 py-0.5 text-xs font-medium ${STYLE[status]}`}>{PLAN_STATUS_LABEL[status]}</span>;
+  return <span className={`badge ${STYLE[status]}`}>{PLAN_STATUS_LABEL[status]}</span>;
 }
 
 /** Working days spare (+) or late (-), as a short signed number. */

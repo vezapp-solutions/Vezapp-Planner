@@ -4,7 +4,8 @@ import { useEffect } from "react";
 
 import { useTheme } from "@/lib/store";
 
-export function ThemeToggle() {
+/** Light/dark switch. `pill` is the round dark version that sits inside the floating navigation. */
+export function ThemeToggle({ variant = "default" }: { variant?: "default" | "pill" }) {
   const { theme, sync, toggle } = useTheme();
   useEffect(sync, [sync]);
   const next = theme === "dark" ? "light" : "dark";
@@ -13,7 +14,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="btn btn-quiet !min-h-9 !px-2.5"
+      className={variant === "pill" ? "pill-icon" : "btn btn-quiet !min-h-9 !px-2.5"}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
     >

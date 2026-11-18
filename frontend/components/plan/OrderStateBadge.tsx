@@ -14,7 +14,7 @@ export function OrderStateBadge({ state, reasons = [] }: { state: OrderState; re
   return (
     <span className="inline-flex flex-col items-start gap-0.5">
       <span
-        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STYLE[state]}`}
+        className={`badge ${STYLE[state]}`}
         title={reasons.join("\n") || undefined}
       >
         {ORDER_STATE_LABEL[state]}

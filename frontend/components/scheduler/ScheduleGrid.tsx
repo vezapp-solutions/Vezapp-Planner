@@ -281,7 +281,7 @@ export function ScheduleGrid({
                 </td>
                 <td className="px-3 py-2"><span className="font-mono text-xs text-ink-soft">{line.customer_code}</span> {line.customer_name}</td>
                 <td className="px-3 py-2">
-                  <span className="font-medium">{line.part_number}</span> {line.part_name}
+                  <span className="whitespace-nowrap font-semibold">{line.part_number}</span> {line.part_name}
                   {line.grade_name && <span className="ml-1.5 text-xs text-ink-soft">{line.grade_name}</span>}
                   {line.warnings.length > 0 && <span className="ml-1.5 rounded-sm bg-warn-wash px-1 text-xs text-warn" title={line.warnings.join("\n")}>check</span>}
                 </td>
@@ -290,7 +290,7 @@ export function ScheduleGrid({
                 <td className="px-2 py-1.5 text-right"><StockCell line={line} field="fg_qty" label="FG stock" canEdit={canEdit} onSaved={stockSaved} /></td>
                 <td className="px-2 py-1.5 text-right"><StockCell line={line} field="actual_dispatched_qty" label="Dispatched" canEdit={canEdit} onSaved={stockSaved} /></td>
                 <td className={`px-3 py-2 text-right font-mono font-semibold ${line.balance === 0 ? "text-ink-soft" : ""}`}>{formatNumber(line.balance)}</td>
-                <td className="px-3 py-2"><OrderStateBadge state={line.plan_state} reasons={line.plan_reasons} /></td>
+                <td className="min-w-[15rem] px-3 py-2"><OrderStateBadge state={line.plan_state} reasons={line.plan_reasons} /></td>
                 <td className="whitespace-nowrap px-3 py-2 font-mono">{line.actual_dispatch_date ? formatDate(line.actual_dispatch_date) : <span className="text-ink-soft">–</span>}</td>
                 <td className="max-w-[12rem] truncate px-3 py-2 text-ink-soft" title={line.remarks}>{line.remarks || "–"}</td>
                 <td className="px-3 py-2 text-right">

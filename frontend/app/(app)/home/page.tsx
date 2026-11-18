@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { SeverityBadge } from "@/components/insights/InsightCard";
 import { Panel } from "@/components/Panel";
-import { EmptyState, ErrorState, LoadingState, PageHeader } from "@/components/States";
+import { Stat, StatRow } from "@/components/Stat";
+import { EmptyState, ErrorState, LoadingState } from "@/components/States";
 import { Slack, StatusBadge } from "@/components/plan/StatusBadge";
 import { addDays, formatDate, formatDayMonth, formatNumber, formatWeekday, todayInIndia } from "@/lib/format";
 import { HEAT_STYLE, heatLevel, percent } from "@/lib/plan-utils";
@@ -14,40 +15,36 @@ import { useApi } from "@/lib/use-api";
 
 const UNIT: Record<string, string> = { core: "cores", moulding: "moulds", melting: "moulds" };
 
-function Workspace() {
+/** The welcome banner: who you are, which company and plants you are looking at, and today's date. */
+function Hero() {
   const user = useSession((s) => s.user!);
   const plants = useApi<Page<Plant>>("/plants");
+  const hour = Number(new Intl.DateTimeFormat("en-IN", { hour: "numeric", hour12: false, timeZone: "Asia/Kolkata" }).format(new Date())) % 24;
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const today = todayInIndia();
+  const first = user.full_name.split(" ")[0];
+  const plantNames = plants.data?.results.map((p) => p.name).join(", ");
 
   return (
-    <Panel title="Your workspace">
-      <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
-        <div>
-          <dt className="text-ink-soft">Company</dt>
-          <dd className="font-medium">{user.company?.name ?? "All companies (Vezapp)"}</dd>
-        </div>
-        <div>
-          <dt className="text-ink-soft">Signed in as</dt>
-          <dd className="font-medium">
-            {user.full_name} · {ROLE_LABEL[user.role]}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-ink-soft">Plants</dt>
-          <dd>
-            {plants.loading && <LoadingState rows={1} label="Loading plants" />}
-            {plants.error && <ErrorState message={plants.error.message} onRetry={plants.reload} />}
-            {plants.data &&
-              (plants.data.results.length ? (
-                <span className="font-medium">{plants.data.results.map((p) => p.name).join(", ")}</span>
-              ) : user.company ? (
-                <span className="text-ink-soft">None added yet</span>
-              ) : (
-                <span className="text-ink-soft">Choose a company to see plants</span>
-              ))}
-          </dd>
-        </div>
-      </dl>
-    </Panel>
+    <section className="scene rounded-2xl px-6 py-7 sm:px-9 sm:py-9">
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#9fb0ab]">
+        {formatWeekday(today)} · {formatDate(today)}
+      </p>
+      <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-[2.5rem]">
+        {greeting}, {first}.
+      </h1>
+      <p className="mt-2 max-w-2xl text-[0.9375rem] text-[#b9c6c2]">
+        {user.company?.name ?? "All companies (Vezapp)"}
+        {plants.loading ? "" : plantNames ? ` · ${plantNames}` : user.company ? " · no plants added yet" : " · choose a company to see its plants"}
+        {" · "}
+        {ROLE_LABEL[user.role]}
+      </p>
+      {plants.error && <p className="mt-2 text-sm text-[#ff9a68]">Could not load plants. {plants.error.message}</p>}
+      <div className="mt-6 flex flex-wrap gap-2">
+        <Link href="/plan" className="btn btn-primary">Open the plan</Link>
+        <Link href="/scheduler/upload" className="btn border-white/20 bg-white/5 text-white hover:bg-white/10">Upload orders</Link>
+      </div>
+    </section>
   );
 }
 
@@ -174,6 +171,12 @@ function PlanSection() {
           <Link href="/plan" className="font-medium text-link underline-offset-2 hover:underline">Recalculate it</Link>
         </p>
       )}
+      <StatRow>
+        <Stat label="Plan" value={`v${plan.version}`} hint={plan.status === "draft" ? (plan.stale ? "draft, out of date" : "draft, up to date") : "confirmed baseline"} tone={plan.stale ? "ember" : "brand"} />
+        <Stat label="Orders planned" value={formatNumber(plan.summary.lines ?? 0)} hint="open orders with a balance" tone="plain" />
+        <Stat label="At risk" value={formatNumber((plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0))} hint="cannot meet the dispatch date" tone={(plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0) ? "danger" : "ok"} />
+        <Stat label="Bottleneck" value={plan.bottleneck ? plan.bottleneck.code : "–"} hint="the machine holding the plan back" tone="ember" />
+      </StatRow>
       <Panel title="Bottleneck, next 14 working days" note={`plan v${plan.version}`}>
         <BottleneckStrip plan={plan} />
       </Panel>
@@ -219,15 +222,11 @@ function TopInsights() {
 }
 
 export default function HomePage() {
-  const today = todayInIndia();
   return (
-    <>
-      <PageHeader title="Home" subtitle={`${formatWeekday(today)}, ${formatDate(today)}`} />
-      <div className="space-y-6">
-        <Workspace />
-        <PlanSection />
-        <TopInsights />
-      </div>
-    </>
+    <div className="space-y-6">
+      <Hero />
+      <PlanSection />
+      <TopInsights />
+    </div>
   );
 }

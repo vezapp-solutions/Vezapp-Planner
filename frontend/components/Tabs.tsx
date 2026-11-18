@@ -32,7 +32,7 @@ export function Tabs({
 
   return (
     <div>
-      <div role="tablist" aria-label="Sections" className="mb-5 flex gap-1 overflow-x-auto border-b border-line">
+      <div role="tablist" aria-label="Sections" className="seg mb-5">
         {tabs.map((t, i) => (
           <button
             key={t.id}
@@ -46,9 +46,7 @@ export function Tabs({
             tabIndex={active === t.id ? 0 : -1}
             onClick={() => onChange(t.id)}
             onKeyDown={(e) => onKey(e, i)}
-            className={`-mb-px min-h-10 shrink-0 border-b-[3px] px-3 text-sm ${
-              active === t.id ? "border-brand font-semibold" : "border-transparent text-ink-soft hover:text-ink"
-            }`}
+            className="seg-tab"
           >
             {t.label}
           </button>

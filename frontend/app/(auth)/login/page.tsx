@@ -40,36 +40,43 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[1fr_28rem]">
-      <section
-        aria-hidden="true"
-        className="relative hidden flex-col justify-between border-r border-line bg-sunken p-10 lg:flex"
-      >
-        <Logo height={34} />
+    <div className="grid min-h-dvh lg:grid-cols-[1fr_30rem]">
+      <section aria-hidden="true" className="scene hidden flex-col justify-between p-12 lg:flex">
+        <Logo height={34} onDark />
         <div>
-          <p className="font-display text-4xl font-semibold leading-tight tracking-tight">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#ff9a68]">Finite-capacity planning</p>
+          <p className="mt-4 font-display text-[3.5rem] font-bold leading-[1.02] tracking-tight">
             Plan the pour
             <br />
-            before the shift starts.
+            before the shift
+            <br />
+            starts.
           </p>
-          <p className="mt-4 max-w-md text-ink-soft">
-            Finite-capacity planning for iron and steel sand-casting foundries: cores, moulding,
-            melting, fettling and dispatch against the hours your plant really has.
+          <p className="mt-6 max-w-md text-[1.0625rem] leading-relaxed text-[#b9c6c2]">
+            Moulds and melts for iron and steel sand-casting foundries, planned against the hours
+            and furnaces your plant really has.
           </p>
         </div>
-        {/* Fourteen day ticks: the same strip the home screen uses for the bottleneck forecast. */}
-        <div className="flex items-end gap-3" style={{ height: 28 }}>
-          {Array.from({ length: 14 }, (_, i) => (
-            <span
-              key={i}
-              className="border-l-2 border-ink-soft"
-              style={{ height: i % 7 === 6 ? 28 : i % 7 === 5 ? 14 : 20 }}
-            />
-          ))}
+        {/* Machine load over the next fourteen working days: tall bars run hot. */}
+        <div>
+          <div className="flex items-end gap-2" style={{ height: 96 }}>
+            {[38, 52, 61, 48, 74, 88, 66, 42, 57, 81, 93, 70, 55, 46].map((h, i) => (
+              <span
+                key={i}
+                className="heat-bar flex-1 rounded-t-md"
+                style={{
+                  height: `${h}%`,
+                  animationDelay: `${i * 55}ms`,
+                  background: h > 85 ? "linear-gradient(180deg, #ff7a3d, #e8541a)" : h > 65 ? "linear-gradient(180deg, #ffb347, #e8541a 140%)" : "linear-gradient(180deg, #1ce4d4, #0a6b63)",
+                }}
+              />
+            ))}
+          </div>
+          <p className="mt-3 font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-[#8fa09b]">Machine load · next 14 working days</p>
         </div>
       </section>
 
-      <main className="flex flex-col px-5 py-6 sm:px-10">
+      <main className="canvas flex flex-col px-5 py-6 sm:px-10">
         <div className="flex items-center justify-between lg:justify-end">
           <span className="lg:hidden">
             <Logo height={28} priority />
@@ -78,8 +85,9 @@ export default function LoginPage() {
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Sign in</h1>
-          <p className="mt-1 text-sm text-ink-soft">to {APP_NAME}</p>
+          <span className="page-tick" aria-hidden="true" />
+          <h1 className="font-display text-4xl font-bold tracking-tight">Sign in</h1>
+          <p className="mt-1.5 text-[0.9375rem] text-ink-soft">to {APP_NAME}</p>
 
           <form onSubmit={submit} className="mt-8 space-y-5" noValidate>
             <div>

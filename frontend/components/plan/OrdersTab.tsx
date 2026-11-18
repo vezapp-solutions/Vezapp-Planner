@@ -67,7 +67,7 @@ export function OrdersTab({ plan, canEdit, onStockChanged }: { plan: Plan; canEd
               {rows.map((l) => (
                 <tr key={l.id} className={`border-b border-line align-top last:border-0 hover:bg-sunken/60 ${l.is_open ? "" : "text-ink-soft"}`}>
                   <td className="whitespace-nowrap px-3 py-2 font-mono">{formatDate(l.internal_dispatch_date)}</td>
-                  <td className="px-3 py-2"><span className="font-medium">{l.part_number}</span> <span className="text-ink-soft">{l.grade_name}</span></td>
+                  <td className="px-3 py-2"><span className="whitespace-nowrap font-semibold">{l.part_number}</span> <span className="block text-xs text-ink-soft">{l.grade_name}</span></td>
                   <td className="px-3 py-2 font-mono text-xs">{l.customer_code}</td>
                   <td className="px-3 py-2 text-right font-mono">{formatNumber(l.dispatch_qty)}</td>
                   <td className="px-2 py-1.5 text-right"><StockCell line={l} field="wip_qty" label="WIP stock" canEdit={canEdit} onSaved={saved} /></td>
