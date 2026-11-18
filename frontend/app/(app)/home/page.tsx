@@ -15,7 +15,7 @@ import { useApi } from "@/lib/use-api";
 
 const UNIT: Record<string, string> = { core: "cores", moulding: "moulds", melting: "moulds" };
 
-/** The welcome banner: who you are, which company and plants you are looking at, and today's date. */
+/** The page header: a greeting and where you are working on the left, the two things you do most on the right. */
 function Hero() {
   const user = useSession((s) => s.user!);
   const plants = useApi<Page<Plant>>("/plants");
@@ -26,25 +26,26 @@ function Hero() {
   const plantNames = plants.data?.results.map((p) => p.name).join(", ");
 
   return (
-    <section className="scene rounded-dialog px-6 py-7 sm:px-9 sm:py-9">
-      <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#9fb0ab]">
-        {formatWeekday(today)} · {formatDate(today)}
-      </p>
-      <h1 className="mt-2 font-display text-3xl font-bold leading-tight tracking-tight sm:text-[2.5rem]">
-        {greeting}, {first}.
-      </h1>
-      <p className="mt-2 max-w-2xl text-[0.9375rem] text-[#b9c6c2]">
-        {user.company?.name ?? "All companies (Vezapp)"}
-        {plants.loading ? "" : plantNames ? ` · ${plantNames}` : user.company ? " · no plants added yet" : " · choose a company to see its plants"}
-        {" · "}
-        {ROLE_LABEL[user.role]}
-      </p>
-      {plants.error && <p className="mt-2 text-sm text-[#ff9a68]">Could not load plants. {plants.error.message}</p>}
-      <div className="mt-6 flex flex-wrap gap-2">
-        <Link href="/plan" className="btn btn-primary">Open the plan</Link>
-        <Link href="/scheduler/upload" className="btn border-white/20 bg-white/5 text-white hover:bg-white/10">Upload orders</Link>
+    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="min-w-0">
+        <h1 className="font-display text-[1.75rem] font-bold leading-tight tracking-tight sm:text-[2rem]">
+          {greeting}, {first}.
+        </h1>
+        <p className="mt-1 max-w-3xl text-sm text-ink-soft">
+          <span className="font-mono text-xs">{formatWeekday(today, "short")} {formatDate(today)}</span>
+          {" · "}
+          {user.company?.name ?? "All companies (Vezapp)"}
+          {plants.loading ? "" : plantNames ? ` · ${plantNames}` : user.company ? " · no plants added yet" : " · choose a company to see its plants"}
+          {" · "}
+          {ROLE_LABEL[user.role]}
+        </p>
+        {plants.error && <p className="mt-1 text-sm text-danger">Could not load plants. {plants.error.message}</p>}
       </div>
-    </section>
+      <div className="flex flex-wrap gap-2">
+        <Link href="/plan" className="btn btn-primary">Open the plan</Link>
+        <Link href="/scheduler/upload" className="btn btn-quiet">Upload orders</Link>
+      </div>
+    </header>
   );
 }
 
@@ -177,14 +178,14 @@ function PlanSection() {
         <Stat label="At risk" value={formatNumber((plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0))} hint="cannot meet the dispatch date" tone={(plan.summary.by_status?.at_risk ?? 0) + (plan.summary.by_status?.unscheduled ?? 0) ? "danger" : "ok"} />
         <Stat label="Bottleneck" value={plan.bottleneck ? plan.bottleneck.code : "–"} hint="the machine holding the plan back" tone="ember" />
       </StatRow>
-      <Panel title="Bottleneck, next 14 working days" note={`plan v${plan.version}`}>
-        <BottleneckStrip plan={plan} />
-      </Panel>
       <div className="grid gap-6 md:grid-cols-2">
         <DayPanel plan={plan} day={today} title="Today's plan" />
         <DayPanel plan={plan} day={addDays(today, 1)} title="Tomorrow's plan" />
       </div>
       <AtRisk plan={plan} />
+      <Panel title="Bottleneck, next 14 working days" note={`plan v${plan.version}`}>
+        <BottleneckStrip plan={plan} />
+      </Panel>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { SparkleIcon } from "@/components/insights/AiBadge";
 import { Logo } from "@/components/Logo";
@@ -12,6 +12,7 @@ import { usePlanningConfig } from "@/lib/planning-config";
 import { useSession } from "@/lib/store";
 import { ROLE_LABEL, type Company, type Page } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Popover } from "@/components/ui/Popover";
 import { Select } from "@/components/ui/Select";
 
 /** Simple 24px line icons, one per screen. Decorative: the label beside each carries the meaning. */
@@ -76,58 +77,11 @@ const ICONS: Record<string, ReactNode> = {
   ),
 };
 
-function NavIcon({ href, className = "nav-icon" }: { href: string; className?: string }) {
+function NavIcon({ href, className = "nav-icon", size = 20 }: { href: string; className?: string; size?: number }) {
   return (
-    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {ICONS[href] ?? <circle cx="12" cy="12" r="4" />}
     </svg>
-  );
-}
-
-/** The side list shown in the slide-out menu on phones and tablets. */
-function SideNav({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname();
-  const role = useSession((s) => s.user!.role);
-  const { config } = usePlanningConfig();
-
-  return (
-    <nav aria-label="Main" className="flex flex-col gap-0.5 px-3 py-2">
-      {navFor(role, config?.planned_operations).map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-        if (item.phase) {
-          return (
-            <span key={item.href} aria-disabled="true" title={`Arrives in Phase ${item.phase}`} className="nav-link opacity-50">
-              <NavIcon href={item.href} />
-              <span className="flex-1">{item.label}</span>
-              <span className="font-mono text-[0.6875rem] uppercase">Ph {item.phase}</span>
-            </span>
-          );
-        }
-        return (
-          <div key={item.href}>
-            <Link
-              href={item.href}
-              onClick={onNavigate}
-              aria-current={active && !item.children ? "page" : undefined}
-              data-active={active}
-              className="nav-link"
-            >
-              <NavIcon href={item.href} />
-              {item.label}
-            </Link>
-            {active &&
-              item.children?.map((child) => {
-                const here = pathname === child.href || (child.href !== item.href && pathname.startsWith(`${child.href}/`));
-                return (
-                  <Link key={child.href} href={child.href} onClick={onNavigate} aria-current={here ? "page" : undefined} className="nav-sub">
-                    {child.label}
-                  </Link>
-                );
-              })}
-          </div>
-        );
-      })}
-    </nav>
   );
 }
 
@@ -165,43 +119,6 @@ function useDismiss(open: boolean, close: () => void) {
     };
   }, [open, close]);
   return ref;
-}
-
-/** The signed-in person at the foot of the slide-out menu, with sign out. */
-function UserCard() {
-  const router = useRouter();
-  const { user, logout } = useSession();
-  const [busy, setBusy] = useState(false);
-  if (!user) return null;
-
-  async function signOut() {
-    setBusy(true);
-    await logout();
-    router.replace("/login");
-  }
-
-  return (
-    <div className="m-3 flex items-center gap-3 rounded-card border border-side-line bg-side-raise p-2.5">
-      <Avatar name={user.full_name} />
-      <div className="min-w-0 flex-1 leading-tight">
-        <p className="truncate text-sm font-semibold text-white">{user.full_name}</p>
-        <p className="truncate text-xs text-side-soft">{ROLE_LABEL[user.role]}</p>
-      </div>
-      <button
-        type="button"
-        onClick={signOut}
-        disabled={busy}
-        aria-label="Sign out"
-        title="Sign out"
-        className="flex h-9 w-9 flex-none items-center justify-center rounded-chip text-side-soft transition-colors hover:bg-side hover:text-white focus-visible:outline-2 focus-visible:outline-brand"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M14 4.5h4.5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H14M10 8l-4 4 4 4M6 12h9" />
-        </svg>
-        <span className="sr-only">{busy ? "Signing out" : "Sign out"}</span>
-      </button>
-    </div>
-  );
 }
 
 /** The person's menu in the floating bar: who they are, and sign out. */
@@ -380,20 +297,116 @@ function CompanySwitcher({ full = false, compact = false }: { full?: boolean; co
   );
 }
 
+/** Width of one slot in the bottom bar (an item plus the gap), in pixels. Matches .bar-item in globals.css. */
+const SLOT = 66;
+
+/** A short name under each icon, so nobody has to guess what an icon is for. */
+const BAR_LABEL: Record<string, string> = {
+  "/scheduler": "Scheduler",
+  "/machine-shop": "Shop",
+  "/settings/data-health": "Health",
+  "/settings/audit": "Audit",
+};
+
+/** The window width. A phone width is assumed until the browser says otherwise. */
+function useWindowWidth() {
+  return useSyncExternalStore(
+    (notify) => {
+      window.addEventListener("resize", notify);
+      return () => window.removeEventListener("resize", notify);
+    },
+    () => window.innerWidth,
+    () => 390,
+  );
+}
+
+/**
+ * Phones, tablets and small laptops: a floating bar at the bottom with just an icon per screen (the name is a
+ * tooltip and the screen-reader label). The wider the screen, the more icons it shows; as it narrows, the last
+ * ones move under More, which also holds the account and Sign out. The top bar keeps the logo, Ask AI and the
+ * theme switch.
+ */
+function BottomBar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useSession();
+  const role = user!.role;
+  const { config } = usePlanningConfig();
+  const width = useWindowWidth();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const moreButton = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  const all = navFor(role, config?.planned_operations);
+  // How many items fit, leaving room for the More button and a margin on both sides. At least three.
+  const slots = Math.floor((width - 52) / SLOT);
+  const shown = Math.max(3, Math.min(all.length, slots - 1));
+  const main = all.slice(0, shown);
+  const more = all.slice(shown);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const moreActive = more.some((i) => isActive(i.href));
+
+  async function signOut() {
+    setBusy(true);
+    await logout();
+    router.replace("/login");
+  }
+
+  return (
+    <>
+      <nav aria-label="Main" className="bottom-bar">
+        {main.map((item) => (
+          <Link key={item.href} href={item.href} aria-label={item.label} aria-current={isActive(item.href) ? "page" : undefined} data-active={isActive(item.href)} className="bar-item">
+            <NavIcon href={item.href} className="" size={22} />
+            <span className="bar-label" aria-hidden="true">{BAR_LABEL[item.href] ?? item.label}</span>
+          </Link>
+        ))}
+        <button ref={moreButton} type="button" aria-label="More" aria-haspopup="dialog" aria-expanded={open} data-active={moreActive || open} className="bar-item" onClick={() => setOpen((o) => !o)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="5.5" cy="12" r="1.8" />
+            <circle cx="12" cy="12" r="1.8" />
+            <circle cx="18.5" cy="12" r="1.8" />
+          </svg>
+          <span className="bar-label" aria-hidden="true">More</span>
+        </button>
+      </nav>
+
+      <Popover anchor={moreButton} open={open} onClose={close} label="More" matchWidth={false} className="w-72 p-2">
+        {more.length > 0 && (
+        <ul className="space-y-0.5">
+          {more.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} onClick={close} aria-current={isActive(item.href) ? "page" : undefined} className="menu-item !min-h-12">
+                <NavIcon href={item.href} className="text-ink-soft" />
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        )}
+        {user && (
+          <div className="mt-2 flex items-center gap-3 border-t border-line px-1 pt-3">
+            <Avatar name={user.full_name} size={40} />
+            <div className="min-w-0 flex-1 leading-tight">
+              <p className="truncate text-sm font-semibold">{user.full_name}</p>
+              <p className="truncate text-xs text-ink-soft">{ROLE_LABEL[user.role]}</p>
+            </div>
+            <button type="button" className="btn btn-quiet !min-h-10" onClick={signOut} disabled={busy}>
+              {busy ? "Signing out…" : "Sign out"}
+            </button>
+          </div>
+        )}
+      </Popover>
+    </>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const user = useSession((s) => s.user!);
   const { config } = usePlanningConfig();
   const company = user.company?.name ?? "";
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const section = navFor(user.role, config?.planned_operations).find((i) => i.children && (pathname === i.href || pathname.startsWith(`${i.href}/`)));
-
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const close = (e: KeyboardEvent) => e.key === "Escape" && setDrawerOpen(false);
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, [drawerOpen]);
 
   return (
     <div className="canvas min-h-dvh">
@@ -420,12 +433,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {section && (
-        <div className="hidden px-8 pt-3 xl:block">
-          <nav aria-label={`${section.label} sections`} className="mx-auto flex max-w-7xl flex-wrap gap-1.5">
+        <div className="px-4 pt-3 sm:px-6 xl:px-8">
+          <nav aria-label={`${section.label} sections`} className="no-scrollbar mx-auto flex max-w-7xl gap-1.5 overflow-x-auto xl:flex-wrap xl:overflow-visible">
             {section.children!.map((child) => {
               const here = pathname === child.href || (child.href !== section.href && pathname.startsWith(`${child.href}/`));
               return (
-                <Link key={child.href} href={child.href} aria-current={here ? "page" : undefined} className="subtab">
+                <Link key={child.href} href={child.href} aria-current={here ? "page" : undefined} className="subtab shrink-0 whitespace-nowrap max-md:min-h-10">
                   {child.label}
                 </Link>
               );
@@ -434,19 +447,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* Phones and tablets: a slim bar with the menu button. */}
+      {/* Narrower than a laptop: a slim top bar; the screens are on the bottom bar. */}
       <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-ground px-3 sm:gap-3 sm:px-5 xl:hidden">
-        <button
-          type="button"
-          className="btn btn-quiet !min-h-9 !px-2.5"
-          aria-label="Open menu"
-          aria-expanded={drawerOpen}
-          onClick={() => setDrawerOpen(true)}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </button>
         <Link href="/home" aria-label="Home" className="flex min-h-10 items-center">
           <Logo height={22} priority />
         </Link>
@@ -471,34 +473,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <main className="min-w-0 px-4 py-7 sm:px-6 xl:px-8 xl:pb-8 xl:pt-14">
+      <main className="min-w-0 px-4 py-7 max-xl:pb-28 sm:px-6 xl:px-8 xl:pb-8 xl:pt-14">
         <div className="rise mx-auto max-w-7xl">{children}</div>
       </main>
 
-      {drawerOpen && (
-        <div className="fixed inset-0 z-40 xl:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close menu" onClick={() => setDrawerOpen(false)} />
-          <aside className="relative flex h-full w-72 max-w-[85vw] flex-col overflow-hidden rounded-r-dialog bg-side shadow-2xl">
-            <div className="flex h-16 flex-none items-center justify-between px-5">
-              <Logo height={24} onDark />
-              <button
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-chip text-side-soft hover:bg-side-raise hover:text-white"
-                aria-label="Close"
-                onClick={() => setDrawerOpen(false)}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <SideNav key={pathname} onNavigate={() => setDrawerOpen(false)} />
-            </div>
-            <UserCard />
-          </aside>
-        </div>
-      )}
+      <BottomBar />
     </div>
   );
 }

@@ -1527,3 +1527,65 @@ table.text-left thead th {
     transform: translateX(270%);
   }
 }
+
+
+/* ---- Phone bottom bar: a floating pill with one icon per screen (components/AppShell.tsx, BottomBar) ---- */
+.bottom-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.375rem;
+  transform: translateX(-50%);
+  background: var(--pill);
+  border-radius: 9999px;
+  box-shadow:
+    0 0 0 1px var(--pill-ring),
+    0 20px 44px -14px var(--pill-shadow),
+    0 4px 12px -4px rgb(0 0 0 / 0.35);
+}
+/* Laptops and wider have the floating pill at the top instead. */
+@media (min-width: 1280px) {
+  .bottom-bar {
+    display: none;
+  }
+}
+.bar-item {
+  display: flex;
+  height: 3.5rem;
+  width: 4rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1875rem;
+  border-radius: 1.75rem;
+  color: var(--pill-ink);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bar-item:active {
+  transform: scale(0.94);
+}
+.bar-label {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bar-item[data-active="true"] {
+  background: var(--pill-active);
+  color: var(--pill-active-ink);
+}
+.bar-item:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

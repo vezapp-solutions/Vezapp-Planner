@@ -1,9 +1,12 @@
 import type { PlanningConfig } from "@/lib/types";
+import { useSession } from "@/lib/store";
 import { useApi } from "@/lib/use-api";
 
 /** The operations planned in this phase. Everything else is shown as "Phase 2 / not planned". */
 export function usePlanningConfig() {
-  const { data } = useApi<PlanningConfig>("/planning-config");
+  // A Vezapp Admin works for one company at a time; reload when they switch (the query value is ignored by the API).
+  const company = useSession((state) => state.actingCompanyId);
+  const { data } = useApi<PlanningConfig>(`/planning-config?company=${company ?? ""}`);
   const planned = data ? new Set(data.planned_operations) : null;
   return {
     config: data ?? null,
