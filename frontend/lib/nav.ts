@@ -44,6 +44,7 @@ export const NAV: NavItem[] = [
   { href: "/settings/users", label: "Users", roles: admins },
   { href: "/settings/data-health", label: "Data health", roles: planners },
   { href: "/settings/audit", label: "Audit log", roles: admins },
+  { href: "/help", label: "Help", roles: everyone },
 ];
 
 /** Screens that only make sense for an operation that is planned; hidden otherwise ("Phase 2"). */

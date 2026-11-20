@@ -103,7 +103,7 @@ export function UnmatchedParts({ parts, onCreated, children }: { parts: Unmatche
             <span>
               <span className="font-mono font-medium">{p.part_number}</span>
               <span className="ml-2 text-sm text-ink-soft">
-                {p.rows.length} row{p.rows.length === 1 ? "" : "s"} (row {p.rows.slice(0, 6).join(", ")}
+                {p.rows.length} row{p.rows.length === 1 ? "" : "s"} (Excel row {p.rows.slice(0, 6).join(", ")}
                 {p.rows.length > 6 ? ", …" : ""}) · {formatNumber(p.qty)} pieces
               </span>
             </span>

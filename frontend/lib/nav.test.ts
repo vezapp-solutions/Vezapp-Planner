@@ -19,4 +19,8 @@ describe("navFor", () => {
     expect(labels(navFor("viewer", ["moulding"]))).not.toContain("What-if");
     expect(labels(navFor("vezapp_admin", ["moulding"]))).toContain("Companies");
   });
+
+  it("gives every role the Help screen", () => {
+    for (const role of ["vezapp_admin", "company_admin", "planner", "viewer"] as const) expect(labels(navFor(role))).toContain("Help");
+  });
 });

@@ -252,7 +252,7 @@ export default function UploadPage() {
                 <table className="w-full min-w-[72rem] text-left text-sm">
                   <thead className="sticky top-0 border-b border-line bg-sunken text-on-sunken">
                     <tr>
-                      {["Row", "Result", "What happens", "Part", "Customer", "Order qty", "Dispatch date", "Status", "WIP", "FG", "Dispatched", "Problem"].map((h) => (
+                      {["Excel row", "Result", "What happens", "Part", "Customer", "Order qty", "Dispatch date", "Status", "WIP", "FG", "Dispatched", "Problem"].map((h) => (
                         <th key={h} scope="col" className="px-3 py-2 font-medium">{h}</th>
                       ))}
                     </tr>

@@ -14,6 +14,8 @@ import { ROLE_LABEL, type Company, type Page } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 import { Popover } from "@/components/ui/Popover";
 import { Select } from "@/components/ui/Select";
+import { WelcomeTour } from "@/components/WelcomeTour";
+import { useTour } from "@/lib/tour-store";
 
 /** Simple 24px line icons, one per screen. Decorative: the label beside each carries the meaning. */
 const ICONS: Record<string, ReactNode> = {
@@ -69,6 +71,12 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   "/settings/data-health": <path d="M3 12h4l2.5-6 4 12 2.5-6H21" />,
+  "/help": (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M9.6 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8M12 16.8v.2" />
+    </>
+  ),
   "/settings/audit": (
     <>
       <path d="M8 3.5h8a1.5 1.5 0 0 1 1.5 1.5v15a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V5A1.5 1.5 0 0 1 8 3.5Z" />
@@ -127,6 +135,7 @@ function PersonMenu() {
   const { user, logout } = useSession();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const startTour = useTour((s) => s.start);
   const ref = useDismiss(open, () => setOpen(false));
   if (!user) return null;
 
@@ -158,6 +167,10 @@ function PersonMenu() {
             </div>
           </div>
           <div className="my-1 h-px bg-line" />
+          <button type="button" role="menuitem" className="menu-item" onClick={() => { setOpen(false); startTour(); }}>
+            <NavIcon href="/help" className="text-ink-soft" />
+            Take the tour
+          </button>
           <button type="button" role="menuitem" className="menu-item" onClick={signOut} disabled={busy}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M14 4.5h4.5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H14M10 8l-4 4 4 4M6 12h9" />
@@ -478,6 +491,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       <BottomBar />
+      <WelcomeTour />
     </div>
   );
 }
