@@ -1,7 +1,7 @@
 import { ORDER_STATE_LABEL, type OrderState } from "@/lib/types";
 
 const STYLE: Record<OrderState, string> = {
-  closed: "bg-sunken text-ink-soft",
+  closed: "bg-sunken text-on-sunken",
   covered: "bg-brand-wash text-link",
   cannot_plan: "bg-warn-wash text-warn",
   at_risk: "bg-danger-wash text-danger",

@@ -77,7 +77,7 @@ export function ResultPanel({ result, ranAt, stale }: { result: ScenarioResult; 
             </h3>
             <div className="panel overflow-x-auto">
               <table className="w-full min-w-[46rem] text-left text-sm">
-                <thead className="border-b border-line bg-sunken text-ink-soft">
+                <thead className="border-b border-line bg-sunken text-on-sunken">
                   <tr>
                     {["Customer", "Part", "Internal date", "Estimated date", "Moved", "Vs internal date", "Status", "Held up by"].map((h, i) => (
                       <th key={h} scope="col" className={`px-3 py-2 font-medium ${i === 5 ? "text-right" : ""}`}>{h}</th>

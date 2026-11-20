@@ -49,7 +49,7 @@ function CopyButton({ text }: { text: string }) {
       type="button"
       onClick={() => void copy()}
       aria-label={done ? "Copied" : "Copy this answer"}
-      className="inline-flex min-h-7 items-center gap-1 rounded-card px-1.5 text-xs text-ink-soft opacity-0 transition duration-150 hover:bg-sunken hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+      className="inline-flex min-h-7 items-center gap-1 rounded-card px-1.5 text-xs text-ink-soft opacity-0 transition duration-150 hover:bg-sunken hover:text-on-sunken focus-visible:opacity-100 group-hover:opacity-100"
     >
       <svg {...icon} className="h-3.5 w-3.5">
         {done ? <path d="M4 10.5l4 4 8-9" /> : <><rect x="7" y="7" width="9" height="9" rx="2" /><path d="M13 7V5.5A1.5 1.5 0 0011.5 4h-6A1.5 1.5 0 004 5.5v6A1.5 1.5 0 005.5 13H7" /></>}
@@ -251,10 +251,10 @@ export function AskPanel() {
                   type="button"
                   onClick={() => void send(s, s === SUMMARY)}
                   disabled={busy}
-                  className="group flex items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left text-sm font-medium transition duration-150 hover:border-action hover:bg-brand-wash hover:shadow-[inset_0_0_14px_1px_rgb(28_228_212/0.26)]"
+                  className="group flex items-center justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left text-sm font-medium transition duration-150 hover:border-accent hover:bg-brand-wash hover:shadow-[inset_0_0_14px_1px_rgb(28_228_212/0.26)]"
                 >
                   {s}
-                  <svg {...icon} className="h-4 w-4 shrink-0 text-ink-soft transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-action"><path d="M4 10h12M11 5l5 5-5 5" /></svg>
+                  <svg {...icon} className="h-4 w-4 shrink-0 text-ink-soft transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-accent"><path d="M4 10h12M11 5l5 5-5 5" /></svg>
                 </button>
               ))}
             </div>
@@ -276,7 +276,7 @@ export function AskPanel() {
                 key={s}
                 type="button"
                 onClick={() => void send(s)}
-                className="shrink-0 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm transition duration-150 hover:border-action hover:bg-brand-wash"
+                className="shrink-0 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm transition duration-150 hover:border-accent hover:bg-brand-wash"
               >
                 {s}
               </button>
@@ -288,7 +288,7 @@ export function AskPanel() {
             e.preventDefault();
             void send(question);
           }}
-          className="flex items-end gap-2 rounded-card-lg border border-[color-mix(in_srgb,var(--ink)_38%,var(--ground))] bg-surface p-1.5 pl-4 transition-[border-color,box-shadow] duration-150 focus-within:border-action focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--action)_24%,transparent)]"
+          className="flex items-end gap-2 rounded-card-lg border border-[color-mix(in_srgb,var(--ink)_38%,var(--ground))] bg-surface p-1.5 pl-4 transition-[border-color,box-shadow] duration-150 focus-within:border-accent focus-within:shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_24%,transparent)]"
         >
           <label className="sr-only" htmlFor="ask-question">Your question</label>
           <textarea

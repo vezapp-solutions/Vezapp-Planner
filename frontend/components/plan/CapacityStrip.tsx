@@ -22,7 +22,7 @@ export function CapacityStrip({ days }: { days: BottleneckDay[] }) {
             return (
               <li key={d.date} aria-label={loaded ? `${day}: ${d.resource_code} ${percent(d.utilisation)} loaded` : `${day}: nothing planned`} className="flex min-w-0 flex-col items-center text-center">
                 <span className={`font-mono text-xs ${loaded ? "font-semibold" : "text-ink-soft"}`}>{loaded ? percent(d.utilisation) : "–"}</span>
-                <span className="mt-1.5 flex w-full items-end justify-center rounded-chip bg-sunken/70" style={{ height: BAR_HEIGHT }} aria-hidden="true">
+                <span className="mt-1.5 flex w-full items-end justify-center rounded-chip bg-sunken-tint" style={{ height: BAR_HEIGHT }} aria-hidden="true">
                   <span className="w-[62%] max-w-8 rounded-t-chip rounded-b-[3px]" style={{ height, background: CAPACITY_COLOR[level], transition: "height 500ms cubic-bezier(0.2, 0.8, 0.2, 1)" }} />
                 </span>
                 <span className="mt-1.5 block max-w-full truncate font-mono text-xs font-medium">

@@ -78,7 +78,7 @@ export function LineDetailPanel({ planId, lineId, version, onClose }: { planId: 
             <h3 id="ops-title" className="mb-2 font-display text-lg font-semibold">Operations</h3>
             <div className="overflow-x-auto rounded-card border border-line">
               <table className="w-full min-w-[44rem] text-left text-sm">
-                <thead className="border-b border-line bg-sunken text-ink-soft">
+                <thead className="border-b border-line bg-sunken text-on-sunken">
                   <tr>
                     {["Operation", "On", "Minutes", "Starts", "Finishes", "Needed by", "Waited for capacity"].map((h) => (
                       <th key={h} scope="col" className="px-3 py-2 font-medium">{h}</th>
@@ -92,8 +92,8 @@ export function LineDetailPanel({ planId, lineId, version, onClose }: { planId: 
                       <tr key={o.code} className="border-b border-line align-top last:border-0">
                         <td className="px-3 py-1.5 font-medium">
                           {o.name}
-                          {!o.capacity_modelled && !o.outsourced && <span className="ml-1.5 rounded-sm bg-sunken px-1 text-xs text-ink-soft" title="No work centre is set, so this step takes time but is not limited by capacity.">not modelled</span>}
-                          {o.outsourced && <span className="ml-1.5 rounded-sm bg-sunken px-1 text-xs text-ink-soft">outside</span>}
+                          {!o.capacity_modelled && !o.outsourced && <span className="ml-1.5 rounded-sm bg-sunken px-1 text-xs text-on-sunken" title="No work centre is set, so this step takes time but is not limited by capacity.">not modelled</span>}
+                          {o.outsourced && <span className="ml-1.5 rounded-sm bg-sunken px-1 text-xs text-on-sunken">outside</span>}
                         </td>
                         <td className="px-3 py-1.5 font-mono text-xs">{o.resource_codes || "–"}</td>
                         <td className="px-3 py-1.5 font-mono">{t ? <Explain traced={t} label={`${o.name} minutes`} /> : formatNumber(o.minutes)}</td>
@@ -116,7 +116,7 @@ export function LineDetailPanel({ planId, lineId, version, onClose }: { planId: 
             ) : (
               <div className="max-h-72 overflow-auto rounded-card border border-line">
                 <table className="w-full min-w-[34rem] text-left text-sm">
-                  <thead className="sticky top-0 border-b border-line bg-sunken text-ink-soft">
+                  <thead className="sticky top-0 border-b border-line bg-sunken text-on-sunken">
                     <tr>{["Day", "Shift", "Operation", "Resource", "Quantity", "Minutes"].map((h) => <th key={h} scope="col" className="px-3 py-1.5 font-medium">{h}</th>)}</tr>
                   </thead>
                   <tbody>

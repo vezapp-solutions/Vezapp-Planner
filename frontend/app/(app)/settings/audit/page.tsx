@@ -78,7 +78,7 @@ export default function AuditPage() {
       ) : (
         <div className="panel overflow-x-auto">
           <table className="w-full min-w-[44rem] text-left text-sm">
-            <thead className="border-b border-line bg-sunken text-ink-soft">
+            <thead className="border-b border-line bg-sunken text-on-sunken">
               <tr>
                 <th scope="col" className="px-4 py-2 font-medium">When</th>
                 <th scope="col" className="px-4 py-2 font-medium">Who</th>

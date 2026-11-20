@@ -55,7 +55,7 @@ export function OrdersTab({ plan, canEdit, onStockChanged }: { plan: Plan; canEd
       ) : (
         <div className="panel overflow-x-auto">
           <table className="w-full min-w-[60rem] text-left text-sm">
-            <thead className="border-b border-line bg-sunken text-ink-soft">
+            <thead className="border-b border-line bg-sunken text-on-sunken">
               <tr>
                 {["Dispatch date", "Part", "Customer", "Order qty", "WIP", "FG", "Dispatched", "Balance", "Estimated", "Status"].map((h, i) => (
                   <th key={h} scope="col" className={`px-3 py-2 font-medium ${i >= 3 && i <= 7 ? "text-right" : ""}`}>{h}</th>
@@ -65,7 +65,7 @@ export function OrdersTab({ plan, canEdit, onStockChanged }: { plan: Plan; canEd
             </thead>
             <tbody>
               {rows.map((l) => (
-                <tr key={l.id} className={`border-b border-line align-top last:border-0 hover:bg-sunken/60 ${l.is_open ? "" : "text-ink-soft"}`}>
+                <tr key={l.id} className={`border-b border-line align-top last:border-0 ${l.is_open ? "" : "text-ink-soft"}`}>
                   <td className="whitespace-nowrap px-3 py-2 font-mono">{formatDate(l.internal_dispatch_date)}</td>
                   <td className="px-3 py-2"><span className="whitespace-nowrap font-semibold">{l.part_number}</span> <span className="block text-xs text-ink-soft">{l.grade_name}</span></td>
                   <td className="px-3 py-2 font-mono text-xs">{l.customer_code}</td>

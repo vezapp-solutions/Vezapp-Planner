@@ -69,8 +69,8 @@ export function MachineChoice({
           {types.map((t) => {
             const on = op.machine_types.includes(t.id);
             return (
-              <label key={t.id} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-action bg-brand-wash" : "border-line"}`}>
-                <input type="checkbox" className="size-4 accent-[var(--action)]" checked={on} onChange={() => onChange(toggleType(op, t.id, machines))} />
+              <label key={t.id} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-accent bg-brand-wash" : "border-line"}`}>
+                <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={on} onChange={() => onChange(toggleType(op, t.id, machines))} />
                 <span className="font-medium">{t.name}</span>
                 <span className="text-xs text-ink-soft">{count(t.id)} machine{count(t.id) === 1 ? "" : "s"}</span>
               </label>
@@ -88,8 +88,8 @@ export function MachineChoice({
             {shown.map((m) => {
               const on = machineOn(op, m);
               return (
-                <label key={m.id} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-action bg-brand-wash" : "border-line"}`}>
-                  <input type="checkbox" className="size-4 accent-[var(--action)]" checked={on} onChange={() => onChange(toggleMachine(op, m))} />
+                <label key={m.id} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-accent bg-brand-wash" : "border-line"}`}>
+                  <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={on} onChange={() => onChange(toggleMachine(op, m))} />
                   <span className="font-mono text-xs">{m.code}</span> {m.name}
                   <span className="text-xs text-ink-soft">{m.type_name}{m.status !== "active" ? `, ${m.status}` : ""}</span>
                 </label>

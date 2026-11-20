@@ -189,7 +189,7 @@ export default function UploadPage() {
             id="schedule-file"
             type="file"
             accept=".xlsx,.csv"
-            className="field !py-2 file:mr-3 file:rounded-sm file:border-0 file:bg-sunken file:px-3 file:py-1.5 file:text-sm"
+            className="field !py-2 file:mr-3 file:rounded-sm file:border-0 file:bg-sunken file:text-on-sunken file:px-3 file:py-1.5 file:text-sm"
             onChange={(e) => choose(e.target.files?.[0] ?? null)}
             disabled={busy !== null}
           />
@@ -197,11 +197,11 @@ export default function UploadPage() {
           <fieldset className="mt-4">
             <legend className="mb-1 text-sm font-medium">If an order is already in the schedule (same customer, part and date)</legend>
             <label className="flex min-h-9 items-center gap-2 text-sm">
-              <input type="radio" name="mode" className="accent-[var(--action)]" checked={mode === "insert"} onChange={() => changeMode("insert")} />
+              <input type="radio" name="mode" className="accent-[var(--accent)]" checked={mode === "insert"} onChange={() => changeMode("insert")} />
               Leave it alone and add only the new orders
             </label>
             <label className="flex min-h-9 items-center gap-2 text-sm">
-              <input type="radio" name="mode" className="accent-[var(--action)]" checked={mode === "upsert"} onChange={() => changeMode("upsert")} />
+              <input type="radio" name="mode" className="accent-[var(--accent)]" checked={mode === "upsert"} onChange={() => changeMode("upsert")} />
               Update it from the file, including WIP, FG and dispatched stock (blank cells keep what is already recorded)
             </label>
           </fieldset>
@@ -250,7 +250,7 @@ export default function UploadPage() {
 
               <div className="max-h-[32rem] overflow-auto rounded-card border border-line">
                 <table className="w-full min-w-[72rem] text-left text-sm">
-                  <thead className="sticky top-0 border-b border-line bg-sunken text-ink-soft">
+                  <thead className="sticky top-0 border-b border-line bg-sunken text-on-sunken">
                     <tr>
                       {["Row", "Result", "What happens", "Part", "Customer", "Order qty", "Dispatch date", "Status", "WIP", "FG", "Dispatched", "Problem"].map((h) => (
                         <th key={h} scope="col" className="px-3 py-2 font-medium">{h}</th>
@@ -295,7 +295,7 @@ export default function UploadPage() {
               <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
                 {s.error > 0 && (
                   <label className="flex min-h-10 items-center gap-2 text-sm font-medium">
-                    <input type="checkbox" className="size-4 accent-[var(--action)]" checked={skipErrors} onChange={(e) => setSkipErrors(e.target.checked)} />
+                    <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={skipErrors} onChange={(e) => setSkipErrors(e.target.checked)} />
                     Load the rest and skip the {formatNumber(s.error)} rows with errors
                   </label>
                 )}

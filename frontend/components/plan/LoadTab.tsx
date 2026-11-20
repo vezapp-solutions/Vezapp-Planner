@@ -73,7 +73,7 @@ export function LoadTab({ plan }: { plan: Plan }) {
           </Select>
         </label>
         <label className="col-span-2 flex min-h-10 items-center gap-2 text-sm">
-          <input type="checkbox" className="size-4 accent-[var(--action)]" checked={byShift} onChange={(e) => setByShift(e.target.checked)} /> Show each shift
+          <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={byShift} onChange={(e) => setByShift(e.target.checked)} /> Show each shift
         </label>
         <ul className="col-span-2 flex flex-wrap gap-2 text-xs" aria-label="Colour key">
           {(["light", "busy", "high", "over"] as const).map((l) => (
@@ -94,7 +94,7 @@ export function LoadTab({ plan }: { plan: Plan }) {
         <div className="panel overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="border-b border-line bg-sunken text-ink-soft">
+              <tr className="border-b border-line bg-sunken text-on-sunken">
                 <th scope="col" className="sticky left-0 z-10 bg-sunken px-3 py-2 text-left font-medium">Resource</th>
                 {grid.data.columns.map((c) => (
                   <th key={c.key} scope="col" className="min-w-[3.6rem] px-1 py-2 text-center font-medium">

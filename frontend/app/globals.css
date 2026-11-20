@@ -15,13 +15,17 @@
 :root {
   --ground: #ece9e2;
   --surface: #fdfcfa;
-  --sunken: #e2ded5;
+  --sunken: #00464a; /* deep teal: table headings, tab tracks, chips, empty boxes, hover rows */
+  --on-sunken: #e8f6f4;
+  --on-sunken-soft: #a9d6d2;
+  --sunken-tint: #dde3df; /* a pale wash of the same teal, for loading skeletons, disabled fields and progress tracks */
   --line: #d2cdc1;
   --ink: #181c1b;
   --ink-soft: #565b57;
   --brand: #1ce4d4;
-  --link: #0a6b63;
-  --action: #0a6b63;
+  --link: #00464a;
+  --action: #00464a; /* the fill of buttons, badges and the AI button */
+  --accent: #00464a; /* the same teal as an edge, a focus ring or selected outline */
   --on-action: #ffffff;
   --brand-wash: #d9f1ed;
   --ember: #e8541a;
@@ -54,14 +58,18 @@
 :root[data-theme="dark"] {
   --ground: #0b1012;
   --surface: #131a1d;
-  --sunken: #090d0f;
+  --sunken: #00464a;
+  --on-sunken: #e8f6f4;
+  --on-sunken-soft: #a9d6d2;
+  --sunken-tint: #0e2326;
   --line: #243034;
   --ink: #e8eeec;
   --ink-soft: #9aa9a6;
   --brand: #1ce4d4;
   --link: #3df0e1;
-  --action: #1ce4d4;
-  --on-action: #04201d;
+  --action: #00464a;
+  --accent: #3df0e1; /* on the dark page the deep teal is too dark to read as an edge, so edges and rings stay bright */
+  --on-action: #e8f6f4;
   --brand-wash: #0f302e;
   --ember: #ff7a3d;
   --ember-ink: #ff9a68;
@@ -91,12 +99,16 @@
   --color-ground: var(--ground);
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
+  --color-on-sunken: var(--on-sunken);
+  --color-on-sunken-soft: var(--on-sunken-soft);
+  --color-sunken-tint: var(--sunken-tint);
   --color-line: var(--line);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-brand: var(--brand);
   --color-link: var(--link);
   --color-action: var(--action);
+  --color-accent: var(--accent);
   --color-on-action: var(--on-action);
   --color-brand-wash: var(--brand-wash);
   --color-danger: var(--danger);
@@ -132,7 +144,7 @@
 
 html {
   background: var(--ground);
-  caret-color: var(--link);
+  caret-color: var(--accent);
   scrollbar-color: var(--line) transparent;
   scrollbar-width: thin;
 }
@@ -168,7 +180,7 @@ body {
 /* In the base layer so a component's own focus style (a ring on a field or the chat box) can replace it. */
 @layer base {
   :focus-visible {
-    outline: 2px solid var(--link);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -219,12 +231,13 @@ button:disabled,
   }
   .btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 30%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
   }
   .btn:active:not(:disabled) {
     transform: translateY(1px);
   }
   .btn-primary {
+    border-color: color-mix(in srgb, var(--accent) 38%, transparent);
     background-color: var(--action);
     background-image: linear-gradient(180deg, color-mix(in srgb, var(--action) 86%, white), var(--action));
     color: var(--on-action);
@@ -248,11 +261,11 @@ button:disabled,
   .btn-primary:focus-visible {
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.18),
-      0 0 0 3px color-mix(in srgb, var(--action) 35%, transparent);
+      0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
   }
   .btn-primary:disabled {
     background-image: none;
-    background-color: var(--sunken);
+    background-color: var(--sunken-tint);
     color: var(--ink-soft);
     border-color: var(--line);
     box-shadow: none;
@@ -319,12 +332,12 @@ button:disabled,
   }
   .field:focus-visible,
   .field[aria-expanded="true"] {
-    border-color: var(--action);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 24%, transparent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
     outline: none;
   }
   .field:disabled {
-    background: var(--sunken);
+    background: var(--sunken-tint);
     color: var(--ink-soft);
     box-shadow: none;
   }
@@ -356,19 +369,19 @@ button:disabled,
     cursor: pointer;
   }
   input[type="checkbox"]:hover:not(:disabled) {
-    border-color: var(--action);
+    border-color: var(--accent);
   }
   input[type="checkbox"]:checked {
     background-color: var(--action);
-    border-color: var(--action);
+    border-color: var(--accent);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
   }
   :root[data-theme="dark"] input[type="checkbox"]:checked {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2304201d' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23e8f6f4' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
   }
   input[type="checkbox"]:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 30%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
   }
   /* Radio buttons: a ring that fills with a dot. */
   input[type="radio"] {
@@ -383,15 +396,15 @@ button:disabled,
     cursor: pointer;
   }
   input[type="radio"]:hover:not(:disabled) {
-    border-color: var(--action);
+    border-color: var(--accent);
   }
   input[type="radio"]:checked {
-    border-color: var(--action);
-    background-image: radial-gradient(circle, var(--action) 0 38%, transparent 42%);
+    border-color: var(--accent);
+    background-image: radial-gradient(circle, var(--accent) 0 38%, transparent 42%);
   }
   input[type="radio"]:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 30%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
   }
   input[type="radio"]:disabled {
     opacity: 0.55;
@@ -417,8 +430,13 @@ button:disabled,
     box-shadow: 0 18px 40px -28px rgb(0 0 0 / 0.85);
   }
 
+  /* Anything painted deep teal reads in light text unless it sets its own. */
+  .bg-sunken {
+    color: var(--on-sunken);
+  }
+
   .skeleton {
-    background: linear-gradient(90deg, var(--sunken), var(--line), var(--sunken));
+    background: linear-gradient(90deg, var(--sunken-tint), var(--line), var(--sunken-tint));
     background-size: 200% 100%;
     border-radius: var(--radius-sm);
     animation: skeleton-sweep 1.4s ease-in-out infinite;
@@ -765,7 +783,7 @@ button:disabled,
     overflow-x: auto;
     padding: 0.25rem;
     background: var(--sunken);
-    border: 1px solid var(--line);
+    border: 1px solid color-mix(in srgb, var(--sunken) 70%, black);
     border-radius: var(--radius-pill);
     scrollbar-width: none;
   }
@@ -779,14 +797,14 @@ button:disabled,
     border-radius: var(--radius-pill);
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--ink-soft);
+    color: var(--on-sunken-soft);
     transition:
       background-color 150ms ease,
       color 150ms ease,
       box-shadow 150ms ease;
   }
   .seg-tab:hover {
-    color: var(--ink);
+    color: var(--on-sunken);
   }
   .seg-tab[aria-selected="true"] {
     background: var(--surface);
@@ -798,7 +816,7 @@ button:disabled,
   }
   .seg-tab:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 35%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
   }
 
   /* ---- Tables: tracked small-caps headings, calm rows, a tinted hover ---- */
@@ -808,7 +826,7 @@ button:disabled,
   }
   thead th {
     background: var(--sunken);
-    color: var(--ink-soft);
+    color: var(--on-sunken);
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.07em;
@@ -997,6 +1015,7 @@ button:disabled,
 }
 .menu-item:hover {
   background: var(--sunken);
+  color: var(--on-sunken);
 }
 .menu-item[aria-current="page"] {
   background: var(--brand-wash);
@@ -1074,7 +1093,7 @@ button:disabled,
     color 150ms ease;
 }
 .subtab:hover {
-  color: var(--ink);
+  color: var(--on-sunken);
   background: var(--sunken);
 }
 .subtab[aria-current="page"] {
@@ -1488,7 +1507,7 @@ table.text-left thead th {
   height: 0.375rem;
   overflow: hidden;
   border-radius: 9999px;
-  background: var(--sunken);
+  background: var(--sunken-tint);
 }
 .wake-bar span {
   position: absolute;

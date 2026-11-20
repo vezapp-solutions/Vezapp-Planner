@@ -34,7 +34,7 @@ export default function MastersHome() {
       <ol className="grid gap-4 sm:grid-cols-2">
         {SECTIONS.map((s, i) => (
           <li key={s.href}>
-            <Link href={s.href} className="panel block h-full p-4 hover:bg-sunken active:bg-line">
+            <Link href={s.href} className="panel block h-full p-4 hover:bg-sunken hover:text-on-sunken active:bg-line">
               <span className="font-mono text-xs text-ink-soft">{String(i + 1).padStart(2, "0")}</span>
               <span className="mt-1 block font-display text-xl font-semibold">{s.title}</span>
               <span className="mt-1 block text-sm text-ink-soft">{s.text}</span>

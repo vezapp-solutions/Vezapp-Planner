@@ -61,7 +61,7 @@ function TypePanel({ type, days }: { type: MachineType; days: string[] }) {
     <Panel title={type.name} note={`${hours(type.free)} h free · ${percent(type.utilisation)} used`}>
       <div className="-mx-4 -my-4 overflow-x-auto">
         <table data-matrix className="w-full min-w-max text-left text-sm">
-          <thead className="border-b border-line bg-sunken text-ink-soft">
+          <thead className="border-b border-line bg-sunken text-on-sunken">
             <tr>
               <th scope="col" className="sticky left-0 z-10 bg-sunken px-3 py-2 font-medium">Machine</th>
               {days.map((d) => (
@@ -91,7 +91,7 @@ function MachineRows({ machine, days, open, onToggle }: { machine: Machine; days
         <th scope="row" className="sticky left-0 z-10 bg-surface px-3 py-1.5 text-left font-normal">
           <button type="button" className="inline-flex min-h-6 min-w-6 items-center gap-2 text-left underline-offset-2 hover:underline" aria-expanded={open} onClick={onToggle}>
             <span className="font-mono font-medium">{machine.code}</span>
-            {machine.status !== "active" && <span className="rounded-sm bg-sunken px-1.5 text-xs text-ink-soft">{machine.status}</span>}
+            {machine.status !== "active" && <span className="rounded-sm bg-sunken px-1.5 text-xs text-on-sunken">{machine.status}</span>}
             {machine.downtime.length > 0 && <span className="rounded-sm bg-warn-wash px-1.5 text-xs text-warn">blocked</span>}
           </button>
         </th>

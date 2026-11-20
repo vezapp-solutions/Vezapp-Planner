@@ -49,7 +49,7 @@ export function MouldPlanTab({ plan }: { plan: Plan }) {
                   <h3 className="font-display text-lg font-semibold">
                     {formatWeekday(day.date)} <span className="font-mono text-base">{formatDate(day.date)}</span>
                   </h3>
-                  <p className="text-sm text-ink-soft">
+                  <p className="text-sm text-on-sunken-soft">
                     <span className="font-mono">{formatNumber(Math.round(day.moulds))}</span> moulds ·{" "}
                     <span className="font-mono">{formatNumber(day.castings)}</span> castings
                   </p>

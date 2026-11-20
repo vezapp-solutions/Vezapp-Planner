@@ -93,8 +93,8 @@ function ResourcePicker({ id, label, options, chosen, onChange, disabled, hint }
         {options.map((r) => {
           const on = chosen.includes(r.id);
           return (
-            <label key={r.id} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-action bg-brand-wash" : "border-line"}`}>
-              <input id={`${id}-${r.id}`} type="checkbox" className="size-4 accent-[var(--action)]" checked={on} onChange={() => onChange(on ? chosen.filter((c) => c !== r.id) : [...chosen, r.id])} />
+            <label key={r.id} className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-sm border px-2.5 text-sm ${on ? "border-accent bg-brand-wash" : "border-line"}`}>
+              <input id={`${id}-${r.id}`} type="checkbox" className="size-4 accent-[var(--accent)]" checked={on} onChange={() => onChange(on ? chosen.filter((c) => c !== r.id) : [...chosen, r.id])} />
               <span className="font-mono text-xs">{r.code}</span> {r.name}
               <span className="text-xs text-ink-soft">{r.rated_summary}</span>
             </label>
@@ -184,18 +184,18 @@ function OpCard({
       <div className="flex flex-wrap items-center gap-2 px-3 py-2">
         <span className="w-6 font-mono text-xs text-ink-soft">{index + 1}</span>
         <label className="flex items-center gap-2">
-          <input type="checkbox" className="size-5 accent-[var(--action)]" checked={op.enabled} disabled={!canEdit} onChange={(e) => set({ enabled: e.target.checked })} aria-label={`Use ${title} for this part`} />
+          <input type="checkbox" className="size-5 accent-[var(--accent)]" checked={op.enabled} disabled={!canEdit} onChange={(e) => set({ enabled: e.target.checked })} aria-label={`Use ${title} for this part`} />
         </label>
         <button type="button" className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 text-left" aria-expanded={open} aria-controls={`${id}-body`} onClick={onToggleOpen}>
           <span className="font-display text-lg font-semibold">{title}</span>
           <span className="truncate text-sm text-ink-soft">{off ? "Not used for this part" : summary(op) || "Needs a time"}</span>
         </button>
         {notPlanned && !off && (
-          <span className="rounded-sm bg-sunken px-1.5 py-0.5 text-xs text-ink-soft" title="This operation stays in the route but is not planned in this phase.">Not planned (Phase 2)</span>
+          <span className="rounded-sm bg-sunken px-1.5 py-0.5 text-xs text-on-sunken" title="This operation stays in the route but is not planned in this phase.">Not planned (Phase 2)</span>
         )}
         {blocked && !off && <span className="rounded-sm bg-danger-wash px-1.5 py-0.5 font-mono text-xs text-danger">fix</span>}
         {!off && op.kind === "post" && !op.capacity_modelled && !op.outsourced && (
-          <span className="rounded-sm bg-sunken px-1.5 py-0.5 font-mono text-xs text-ink-soft" title="No work centre is set, so plans do not check capacity for this operation.">capacity not modelled</span>
+          <span className="rounded-sm bg-sunken px-1.5 py-0.5 font-mono text-xs text-on-sunken" title="No work centre is set, so plans do not check capacity for this operation.">capacity not modelled</span>
         )}
         {canEdit && canRemove && (
           <button type="button" className="btn btn-quiet !min-h-8 !px-2 text-sm" onClick={onRemove} aria-label={`Remove ${title}`}>Remove</button>
@@ -337,7 +337,7 @@ function OpCard({
                 {op.type_code === "machining" || op.outsourced ? (
                   <div className="sm:col-span-2 grid gap-x-4 gap-y-3 sm:grid-cols-2">
                     <label className="flex min-h-10 items-center gap-2 text-sm font-medium">
-                      <input type="checkbox" className="size-4 accent-[var(--action)]" checked={op.outsourced} disabled={!canEdit} onChange={(e) => set({ outsourced: e.target.checked, lead_days: e.target.checked ? (op.lead_days ?? 5) : null })} />
+                      <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={op.outsourced} disabled={!canEdit} onChange={(e) => set({ outsourced: e.target.checked, lead_days: e.target.checked ? (op.lead_days ?? 5) : null })} />
                       Done outside (outsourced)
                     </label>
                     {op.outsourced && (
@@ -346,7 +346,7 @@ function OpCard({
                   </div>
                 ) : (
                   <label className="sm:col-span-2 flex min-h-10 items-center gap-2 text-sm font-medium">
-                    <input type="checkbox" className="size-4 accent-[var(--action)]" checked={op.outsourced} disabled={!canEdit} onChange={(e) => set({ outsourced: e.target.checked, lead_days: e.target.checked ? 5 : null })} />
+                    <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={op.outsourced} disabled={!canEdit} onChange={(e) => set({ outsourced: e.target.checked, lead_days: e.target.checked ? 5 : null })} />
                     Done outside (outsourced)
                   </label>
                 )}

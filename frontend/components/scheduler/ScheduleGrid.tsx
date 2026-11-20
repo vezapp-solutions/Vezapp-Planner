@@ -256,7 +256,7 @@ export function ScheduleGrid({
   return (
     <div className="panel overflow-x-auto">
       <table className="w-full min-w-[78rem] text-left text-sm">
-        <thead className="border-b border-line bg-sunken text-ink-soft">
+        <thead className="border-b border-line bg-sunken text-on-sunken">
           <tr>
             {HEADERS.map((h, i) => (
               <th key={h} scope="col" className={`px-3 py-2 font-medium ${RIGHT.has(i) ? "text-right" : ""}`}>{h}</th>
@@ -272,7 +272,7 @@ export function ScheduleGrid({
             editing === line.id ? (
               <EditRow key={line.id} line={line} month={month} customers={customerList} parts={partList} onDone={done} onCancel={() => setEditing(null)} />
             ) : (
-              <tr key={line.id} className={`border-b border-line last:border-0 hover:bg-sunken/60 ${line.is_open ? "" : "text-ink-soft"}`}>
+              <tr key={line.id} className={`border-b border-line last:border-0 ${line.is_open ? "" : "text-ink-soft"}`}>
                 <td className="whitespace-nowrap px-3 py-2 font-mono">
                   {formatDate(line.internal_dispatch_date)}
                   {line.internal_dispatch_date < today && line.is_open && (

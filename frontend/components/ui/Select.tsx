@@ -176,8 +176,8 @@ export function Select({
               onMouseEnter={() => !item.disabled && setActive(index)}
               onClick={() => choose(index)}
               className={`flex cursor-pointer items-center justify-between gap-3 rounded-[calc(var(--radius-card-lg)-0.25rem)] px-3 py-2 text-sm transition-colors duration-150 ${
-                item.disabled ? "cursor-not-allowed opacity-50" : index === active ? "bg-sunken" : ""
-              } ${isSelected ? "font-semibold text-link" : ""} ${item.value === "" && !isSelected ? "text-ink-soft" : ""}`}
+                item.disabled ? "cursor-not-allowed opacity-50" : index === active ? "bg-sunken text-on-sunken" : ""
+              } ${isSelected ? `font-semibold ${index === active ? "" : "text-link"}` : ""} ${item.value === "" && !isSelected && index !== active ? "text-ink-soft" : ""}`}
             >
               <span className="truncate">{item.label}</span>
               {isSelected && (

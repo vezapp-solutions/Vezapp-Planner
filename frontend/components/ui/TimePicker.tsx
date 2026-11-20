@@ -21,7 +21,7 @@ const PRESETS: { label: string; value: string }[] = [
 const cell =
   "flex h-10 items-center justify-center rounded-chip text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-action";
 const on = "bg-action text-on-action";
-const off = "hover:bg-sunken";
+const off = "hover:bg-sunken hover:text-on-sunken";
 
 /**
  * A clock drop-down in place of the browser's time input. The value is the same "HH:mm" 24-hour string the input
@@ -100,7 +100,7 @@ export function TimePicker({
                 type="button"
                 aria-pressed={parsed ? pm === isPm : false}
                 onClick={() => emit({ hour: from12Hour(hour12, isPm), minute: base.minute })}
-                className={`min-h-9 min-w-12 rounded-full px-3 text-sm font-semibold transition-colors duration-150 ${parsed && pm === isPm ? "bg-surface shadow-sm" : "text-ink-soft"}`}
+                className={`min-h-9 min-w-12 rounded-full px-3 text-sm font-semibold transition-colors duration-150 ${parsed && pm === isPm ? "bg-surface text-ink shadow-sm" : "text-on-sunken-soft"}`}
               >
                 {isPm ? "PM" : "AM"}
               </button>
@@ -134,7 +134,7 @@ export function TimePicker({
               type="button"
               onClick={() => onChange?.({ target: { value: p.value } })}
               aria-pressed={value === p.value}
-              className={`min-h-9 rounded-full border px-3 text-sm transition-colors duration-150 ${value === p.value ? "border-action bg-brand-wash font-semibold" : "border-line hover:border-ink-soft hover:bg-sunken"}`}
+              className={`min-h-9 rounded-full border px-3 text-sm transition-colors duration-150 ${value === p.value ? "border-accent bg-brand-wash font-semibold" : "border-line hover:border-ink-soft hover:bg-sunken hover:text-on-sunken"}`}
             >
               {p.label}
             </button>
@@ -145,7 +145,7 @@ export function TimePicker({
           {clearable ? (
             <button
               type="button"
-              className="min-h-9 rounded-chip px-2 text-sm text-ink-soft transition-colors duration-150 hover:bg-sunken hover:text-ink"
+              className="min-h-9 rounded-chip px-2 text-sm text-ink-soft transition-colors duration-150 hover:bg-sunken hover:text-on-sunken"
               onClick={() => {
                 onChange?.({ target: { value: "" } });
                 close();

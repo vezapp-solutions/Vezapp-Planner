@@ -5,7 +5,7 @@ const STYLE: Record<PlanLineStatus, string> = {
   on_track: "bg-ok-wash text-ok",
   tight: "bg-warn-wash text-warn",
   at_risk: "bg-danger-wash text-danger",
-  unscheduled: "bg-sunken text-ink-soft",
+  unscheduled: "bg-sunken text-on-sunken",
 };
 
 export function StatusBadge({ status }: { status: PlanLineStatus }) {

@@ -13,7 +13,7 @@ import type { AssistantReply, Insight, ScenarioResult, Severity } from "@/lib/ty
 const SEVERITY_STYLE: Record<Severity, string> = {
   critical: "bg-danger-wash text-danger",
   warning: "bg-warn-wash text-warn",
-  info: "bg-sunken text-ink-soft",
+  info: "bg-sunken text-on-sunken",
 };
 
 const BORDER: Record<Severity, string> = { critical: "border-l-danger", warning: "border-l-warn", info: "border-l-line" };

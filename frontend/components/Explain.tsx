@@ -48,7 +48,7 @@ export function Explain({ traced, label, unit = "" }: { traced: Traced; label: s
     <span ref={box} className="relative inline-block">
       <button
         type="button"
-        className="inline-flex min-h-6 min-w-6 items-center justify-center rounded-sm border-b border-dashed border-ink-soft font-mono font-medium hover:bg-sunken"
+        className="inline-flex min-h-6 min-w-6 items-center justify-center rounded-sm border-b border-dashed border-ink-soft font-mono font-medium hover:bg-sunken hover:text-on-sunken"
         aria-expanded={open}
         aria-controls={id}
         aria-label={`${label}: ${shown}. Show how this is calculated`}

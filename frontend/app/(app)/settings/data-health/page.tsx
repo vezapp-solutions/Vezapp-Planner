@@ -17,7 +17,7 @@ const KIND_TITLE: Record<string, string> = {
 const SEVERITY: Record<HealthItem["severity"], { label: string; style: string }> = {
   error: { label: "Fix", style: "bg-danger-wash text-danger" },
   warning: { label: "Check", style: "bg-warn-wash text-warn" },
-  info: { label: "Note", style: "bg-sunken text-ink-soft" },
+  info: { label: "Note", style: "bg-sunken text-on-sunken" },
 };
 
 /** The items by kind, keeping the order the server ranked them in. */

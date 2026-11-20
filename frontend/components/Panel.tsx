@@ -16,7 +16,7 @@ export function Panel({
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-6 pb-1 pt-5">
         <h2 className="font-display text-[1.0625rem] font-semibold tracking-tight">{title}</h2>
         <div className="flex items-center gap-3">
-          {note && <span className="rounded-full bg-sunken px-3 py-1 font-mono text-xs text-ink-soft">{note}</span>}
+          {note && <span className="rounded-full bg-sunken px-3 py-1 font-mono text-xs text-on-sunken">{note}</span>}
           {actions}
         </div>
       </div>

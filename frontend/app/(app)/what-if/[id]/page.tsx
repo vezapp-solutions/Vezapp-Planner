@@ -92,7 +92,7 @@ function ApplyBox({ scenario, onApplied }: { scenario: ScenarioDetail; onApplied
         ))}
       </ul>
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" className="size-4 accent-[var(--action)]" checked={recalc} onChange={(e) => setRecalc(e.target.checked)} />
+        <input type="checkbox" className="size-4 accent-[var(--accent)]" checked={recalc} onChange={(e) => setRecalc(e.target.checked)} />
         Recalculate the plan straight away (a confirmed plan is kept; a new plan is started)
       </label>
       {error && <FormErrorLine message={error} />}
@@ -221,7 +221,7 @@ export default function ScenarioPage() {
               {s.changes.map((c) => (
                 <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2">
                   <span>
-                    <span className="mr-2 rounded-sm bg-sunken px-1.5 py-0.5 text-xs text-ink-soft">{CHANGE_KIND_LABEL[c.kind]}</span>
+                    <span className="mr-2 rounded-sm bg-sunken px-1.5 py-0.5 text-xs text-on-sunken">{CHANGE_KIND_LABEL[c.kind]}</span>
                     {c.text}
                   </span>
                   {canEdit && (

@@ -79,7 +79,7 @@ function WeekGrid({ canEdit, version }: { canEdit: boolean; version: number }) {
                   <td key={s.id} className="px-3 py-2">
                     <input
                       type="checkbox"
-                      className="size-5 accent-[var(--action)]"
+                      className="size-5 accent-[var(--accent)]"
                       checked={chosen(d.weekday).includes(s.id)}
                       disabled={!canEdit}
                       onChange={() => toggle(d.weekday, s.id)}

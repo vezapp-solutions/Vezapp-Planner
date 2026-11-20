@@ -132,7 +132,7 @@ export function CrudScreen<T extends { id: number }>(props: CrudProps<T>) {
       ) : (
         <div className="panel overflow-x-auto">
           <table className="w-full min-w-[32rem] text-left text-sm">
-            <thead className="border-b border-line bg-sunken text-ink-soft">
+            <thead className="border-b border-line bg-sunken text-on-sunken">
               <tr>
                 {columns.map((c) => (
                   <th key={c.header} scope="col" className={`px-4 py-2 font-medium ${c.className ?? ""}`}>
@@ -144,7 +144,7 @@ export function CrudScreen<T extends { id: number }>(props: CrudProps<T>) {
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-b border-line last:border-0 hover:bg-sunken/60">
+                <tr key={row.id} className="border-b border-line last:border-0">
                   {columns.map((c, i) => (
                     <td key={c.header} className={`px-4 py-2 ${c.className ?? ""}`}>
                       {i === 0 ? (

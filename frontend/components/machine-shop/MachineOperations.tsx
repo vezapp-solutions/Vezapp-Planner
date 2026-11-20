@@ -10,7 +10,7 @@ export function MachineOperations({ shop }: { shop: MachineShop }) {
     <Panel title="Machining operations in the plan" note={`${shop.operations.length} operation${shop.operations.length === 1 ? "" : "s"}`}>
       <div className="-mx-4 -my-4 overflow-x-auto">
         <table className="w-full min-w-[50rem] text-left text-sm">
-          <thead className="border-b border-line bg-sunken text-ink-soft">
+          <thead className="border-b border-line bg-sunken text-on-sunken">
             <tr>
               {["Part", "Customer", "Pieces", "Operation", "Machines", "Starts", "Finishes", "Hours", "Line"].map((h, i) => (
                 <th key={h} scope="col" className={`px-3 py-2 font-medium ${i === 2 || i === 7 ? "text-right" : ""}`}>{h}</th>

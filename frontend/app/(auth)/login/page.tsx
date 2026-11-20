@@ -138,7 +138,7 @@ export default function LoginPage() {
                       style={{
                         height: `${h}%`,
                         animationDelay: `${i * 55}ms`,
-                        background: h > 85 ? "linear-gradient(180deg, #ff7a3d, #e8541a)" : h > 65 ? "linear-gradient(180deg, #ffb347, #e8541a 140%)" : "linear-gradient(180deg, #1ce4d4, #0a6b63)",
+                        background: h > 85 ? "linear-gradient(180deg, #ff7a3d, #e8541a)" : h > 65 ? "linear-gradient(180deg, #ffb347, #e8541a 140%)" : "linear-gradient(180deg, #1ce4d4, #00464a)",
                       }}
                     />
                   ))}

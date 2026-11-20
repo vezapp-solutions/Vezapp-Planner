@@ -21,9 +21,9 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-card-lg border border-dashed border-ink-soft/40 bg-sunken/50 px-5 py-7">
+    <div className="rounded-card-lg border border-dashed border-on-sunken-soft/40 bg-sunken px-5 py-7 text-on-sunken">
       <p className="font-display text-lg font-semibold">{title}</p>
-      {children && <p className="mt-1 max-w-prose text-sm text-ink-soft">{children}</p>}
+      {children && <p className="mt-1 max-w-prose text-sm text-on-sunken-soft">{children}</p>}
       {action && <div className="mt-3">{action}</div>}
     </div>
   );

@@ -51,7 +51,7 @@ export function LinesTab({ plan }: { plan: Plan }) {
       ) : (
         <div className="panel overflow-x-auto">
           <table className="w-full min-w-[52rem] text-left text-sm">
-            <thead className="border-b border-line bg-sunken text-ink-soft">
+            <thead className="border-b border-line bg-sunken text-on-sunken">
               <tr>
                 {["Status", "Internal date", "Estimated", "Vs internal date", "Customer", "Part", "Qty", "Held up by"].map((h, i) => (
                   <th key={h} scope="col" className={`px-3 py-2 font-medium ${i === 3 || i === 6 ? "text-right" : ""}`}>{h}</th>
@@ -60,7 +60,7 @@ export function LinesTab({ plan }: { plan: Plan }) {
             </thead>
             <tbody>
               {lines.data?.results.map((l) => (
-                <tr key={l.id} className="border-b border-line last:border-0 hover:bg-sunken/60">
+                <tr key={l.id} className="border-b border-line last:border-0">
                   <td className="px-3 py-2"><StatusBadge status={l.status} /></td>
                   <td className="whitespace-nowrap px-3 py-2 font-mono">{formatDate(l.internal_date)}</td>
                   <td className="whitespace-nowrap px-3 py-2 font-mono">
