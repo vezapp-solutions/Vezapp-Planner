@@ -11,6 +11,7 @@ import { retryWake, useServerStatus } from "@/lib/server-status";
 export function ServerWaking() {
   const phase = useServerStatus((s) => s.phase);
   const since = useServerStatus((s) => s.since);
+  const limited = useServerStatus((s) => s.limited);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -51,6 +52,11 @@ export function ServerWaking() {
               <span />
             </div>
             <p className="mt-3 font-mono text-xs text-ink-soft">Waiting {seconds}s</p>
+            {limited && (
+              <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+                The hosting service is limiting how often we can ask it to wake, so we are waiting a little longer between tries.
+              </p>
+            )}
           </>
         )}
       </div>

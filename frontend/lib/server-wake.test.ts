@@ -100,4 +100,37 @@ describe("a sleeping server", () => {
       .mockResolvedValueOnce(json({ fine: true }));
     await expect(api("/plans")).resolves.toEqual({ fine: true });
   });
+
+  it("treats Render's rate-limited sleeping-service answer (429) as a sleeping server and waits for it", async () => {
+    const limited = () => new Response("Too Many Requests", { status: 429, headers: { "X-Render-Routing": "hibernate-rate-limited", "Content-Type": "text/plain" } });
+    vi.useFakeTimers();
+    fetchMock
+      .mockResolvedValueOnce(limited()) // the request
+      .mockResolvedValueOnce(limited()) // health: still limited
+      .mockResolvedValueOnce(json({ status: "ok" })) // health: awake
+      .mockResolvedValueOnce(json({ ok: 1 })); // the request again
+    const pending = api("/auth/me");
+    await vi.advanceTimersByTimeAsync(100);
+    expect(useServerStatus.getState()).toMatchObject({ phase: "waking", limited: true });
+    // it backs off instead of asking again after 2 seconds
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(urls().filter((u) => u === "/health")).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(6000);
+    await expect(pending).resolves.toEqual({ ok: 1 });
+    expect(useServerStatus.getState()).toMatchObject({ phase: "ok", limited: false });
+  });
+
+  it("does not mistake a 429 from our own API (a throttled caller) for a sleeping server", async () => {
+    fetchMock.mockResolvedValueOnce(json({ detail: "Too many attempts. Try again later." }, 429));
+    await expect(api("/auth/login")).rejects.toMatchObject({ status: 429, message: "Too many attempts. Try again later." });
+    expect(urls()).toEqual(["/auth/login"]);
+  });
+
+  it("recognises a response stamped by Render's routing layer even when the status looks ordinary", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response("", { status: 404, headers: { "X-Render-Routing": "no-server" } }))
+      .mockResolvedValueOnce(json({ status: "ok" }))
+      .mockResolvedValueOnce(json({ fine: true }));
+    await expect(api("/parts")).resolves.toEqual({ fine: true });
+  });
 });
